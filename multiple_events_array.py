@@ -71,8 +71,9 @@ velocity_model = 'ak135' #iasp91, pavdut, scak, ak135, #fix japan_1d
 processing = 'fk' #ls, fk, lts
 FREQ_MIN = 1 #0.5 (Cade)
 FREQ_MAX = 10.0 #10 (Cade)
-WINDOW_LENGTH = 2.5 #seconds
-WINDOW_OVERLAP = (WINDOW_LENGTH-0.25)/WINDOW_LENGTH #0.25s between each window
+#WINDOW_LENGTH = 2.5 #seconds
+WINDOW_LENGTH = [2.5, 4.5]
+WINDOW_SEP = 0.25
 window_start = -1 #1 second before trigger
 
 # STA/LTA inputs-------------------
@@ -190,98 +191,121 @@ eq_baz = df['backazimuth'].to_numpy()
 eq_slow = df['slowness'].to_numpy()
 eq_distance = df['distance'].to_numpy()
 array_data_list = []
-#%%
-for event in range(len(df)):
-    try:
-        print("Starting", event_ids[event], 'Ml', mag[event], eq_time[event])
-        stations = stations_lists[event] #pull out stations available for each event
-        eq_slow_real = eq_slow[event]
-        eq_baz_real = eq_baz[event]
-        event_id = event_ids[event]
 
-        #Pull out one minute on either side of expected arrival time
-        START = UTCDateTime(eq_time[event])+expected_parrival[event]- (mseed_length/2) 
-        END = START + mseed_length
+#Handles case for only single input given. If multiple inputs, it will be a list
+if isinstance(FREQ_MAX, (float, int)):
+    FREQ_MAX = [FREQ_MAX]
+if isinstance(FREQ_MIN, (float,int)):
+    FREQ_MIN = [FREQ_MIN]
+if isinstance(WINDOW_LENGTH, (float,int)):
+    WINDOW_LENGTH = [WINDOW_LENGTH]
 
-        ###Grab and preprocess data----------------------------
-        (st, stations, sta_lats, 
-         sta_lons, sta_elev) = grab_preprocess(stations, station_info, inv, 
-                                               net, loc, chan, min_stations, 
-                                               START, END, client, array_name,
-                                               event_id, save_mseed, mseed_path)
+#Loop through window lengths
+for window in range(len(WINDOW_LENGTH)):
+
+    window_length = WINDOW_LENGTH[window]
+    WINDOW_OVERLAP = (window_length-WINDOW_SEP)/window_length #0.25s between each window
+#Loop through frequencies
+    for freq in range(len(FREQ_MAX)):
+        freq_min = FREQ_MIN[freq]
+        freq_max = FREQ_MAX[freq]
+
+
+        print('Starting analysis for', window_length, 's window and '+str(freq_min)+'-'+str(freq_max), ' Hz bandpass filter')
+
         #%%
-        
-        
-        st1 = st.copy() #Pulling this out for FK processing
+        #Loop through events
+        for event in range(len(df)):
+            try:
+                print("Starting", event_ids[event], 'Ml', mag[event], eq_time[event])
+                stations = stations_lists[event] #pull out stations available for each event
+                eq_slow_real = eq_slow[event]
+                eq_baz_real = eq_baz[event]
+                event_id = event_ids[event]
 
-        ###Finding triggers---------------------------------
-        if timing == 'trigger': #use sta/lta triggers
-            (st, trigger, peak, length, 
-             trigger_type, trigger_time, 
-             START_new, END_new)= triggers(st, short_window, long_window, 
-                                           on_threshold, off_theshold, 
-                                           moveout, min_triggers, 
-                                                   ptolerance, START, 
-                                                   window_start, 
-                                                   WINDOW_LENGTH, FREQ_MIN, 
-                                                   FREQ_MAX, trig_freq_min,
-                                                   trig_freq_max, 
-                                                   multiple_triggers,
-                                                   mseed_length, no_triggers)
-    
+                #Pull out one minute on either side of expected arrival time
+                START = UTCDateTime(eq_time[event])+expected_parrival[event]- (mseed_length/2) 
+                END = START + mseed_length
+
+                ###Grab and preprocess data----------------------------
+                (st, stations, sta_lats, 
+                sta_lons, sta_elev) = grab_preprocess(stations, station_info, inv, 
+                                                    net, loc, chan, min_stations, 
+                                                    START, END, client, array_name,
+                                                    event_id, save_mseed, mseed_path)
+                #%%
                 
+                
+                st1 = st.copy() #Pulling this out for FK processing
 
-        ###Array processing---------------------------------
-        ##Least squares--------------------
-        if processing == 'lts' or processing == 'ls':
-
-            array_data = least_trimmed_squares(processing, st, sta_lats, sta_lons, 
-                                       WINDOW_LENGTH, WINDOW_OVERLAP,
-                                       eq_baz_real, eq_slow_real)
+                ###Finding triggers---------------------------------
+                if timing == 'trigger': #use sta/lta triggers
+                    (st, trigger, peak, length, 
+                    trigger_type, trigger_time, 
+                    START_new, END_new)= triggers(st, short_window, long_window, 
+                                                on_threshold, off_theshold, 
+                                                moveout, min_triggers, 
+                                                        ptolerance, START, 
+                                                        window_start, 
+                                                        window_length, freq_min, 
+                                                        freq_max, trig_freq_min,
+                                                        trig_freq_max, 
+                                                        multiple_triggers,
+                                                        mseed_length, no_triggers)
             
-        ##Frequency wavenumber--------------------
-        elif processing == 'fk': 
-            array_data = fk_obspy(st1, stations, sta_lats, sta_lons, sta_elev, 
-                                  START_new, END_new, WINDOW_LENGTH, 
-                                  WINDOW_OVERLAP, FREQ_MIN, FREQ_MAX, sll_x, 
-                                  slm_x, sll_y, slm_y, sl_s, semb_thres, 
-                                  vel_thres, timestamp, prewhiten,
-                                  eq_baz_real, eq_slow_real)
+                        
+
+                ###Array processing---------------------------------
+                ##Least squares--------------------
+                if processing == 'lts' or processing == 'ls':
+
+                    array_data = least_trimmed_squares(processing, st, sta_lats, sta_lons, 
+                                            window_length, WINDOW_OVERLAP,
+                                            eq_baz_real, eq_slow_real)
+                    
+                ##Frequency wavenumber--------------------
+                elif processing == 'fk': 
+                    array_data = fk_obspy(st1, stations, sta_lats, sta_lons, sta_elev, 
+                                        START_new, END_new, window_length, 
+                                        WINDOW_OVERLAP, freq_min, freq_max, sll_x, 
+                                        slm_x, sll_y, slm_y, sl_s, semb_thres, 
+                                        vel_thres, timestamp, prewhiten,
+                                        eq_baz_real, eq_slow_real)
 
 
-    ################################################################ 
-        #Save common data------------------------
-        array_data['max_freq'] = FREQ_MAX
-        array_data['min_freq'] = FREQ_MIN
-        array_data['window_length'] = WINDOW_LENGTH
-        array_data['window_start'] = window_start
-        array_data['multiple_triggers'] = multiple_triggers
-        array_data['no_triggers'] = no_triggers
-        array_data['trigger_time'] = str(trigger_time)
-        array_data['trigger_type'] = trigger_type
-        array_data['sta/lta'] = peak
-        array_data['trigger_length'] = length 
-        array_data['num_stations'] = len(st)
-        array_data['array_lat'] = origin_lat
-        array_data['array_lon'] = origin_lon
-        array_data['event_id'] = event_id
-        array_data['velocity_model'] = velocity_model
-        array_data['array_processing'] = processing
-        array_data['min_triggers'] = min_triggers
+            ################################################################ 
+                #Save common data------------------------
+                array_data['max_freq'] = freq_max
+                array_data['min_freq'] = freq_min
+                array_data['window_length'] = window_length
+                array_data['window_start'] = window_start
+                array_data['multiple_triggers'] = multiple_triggers
+                array_data['no_triggers'] = no_triggers
+                array_data['trigger_time'] = str(trigger_time)
+                array_data['trigger_type'] = trigger_type
+                array_data['sta/lta'] = peak
+                array_data['trigger_length'] = length 
+                array_data['num_stations'] = len(st)
+                array_data['array_lat'] = origin_lat
+                array_data['array_lon'] = origin_lon
+                array_data['event_id'] = event_id
+                array_data['velocity_model'] = velocity_model
+                array_data['array_processing'] = processing
+                array_data['min_triggers'] = min_triggers
 
 
-    
-        array_data_list.append(array_data)
+            
+                array_data_list.append(array_data)
 
-        print('Events completed:', str(event+1)+'/'+str(len(df)))
+                print('Events completed:', str(event+1)+'/'+str(len(df)))
 
-    except ValueError as e:
-        print(f"Skipping event {event_ids[event]}: {e}")
-        continue
+            except ValueError as e:
+                print(f"Skipping event {event_ids[event]}: {e}")
+                continue
 
-    except Exception as e:
-        print(f"Unexpected error for event {event_ids[event]}: {e}")
-        continue
+            except Exception as e:
+                print(f"Unexpected error for event {event_ids[event]}: {e}")
+                continue
 
 #Putting data into single dataframe----------------------
 array_data_comb1 = pd.concat(array_data_list, ignore_index=True)
