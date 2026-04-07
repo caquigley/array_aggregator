@@ -1,0 +1,11 @@
+name: arrayseis
+channels:
+    - conda-forge
+    - defaults
+dependencies:
+    - pip
+    - obspy
+    - pygmt
+    - numba
+    - pip:
+      - https://github.com/caquigley/lts_array
