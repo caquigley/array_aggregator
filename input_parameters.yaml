@@ -1,0 +1,65 @@
+# Station / network parameters------------
+network:
+  net: "9C"
+  sta: "POM*"
+  loc: "*"
+  chan: "SHZ"
+  client: "EARTHSCOPE"
+
+stations:
+  min_stations: 10
+  remove_stations: ["POM06", "POM07", "POM18"]
+  keep_stations: []
+  array_name: "POM"
+  use_full_deployment: false
+  path_to_inventory: null
+  save_events: false
+  save_stations: false
+
+# MSEED parameters------------------------
+mseed:
+  save_mseed: true
+  mseed_path: "./POM_earthquakes_mseeds/"
+  mseed_length: 120
+
+# Earthquake search parameters------------
+earthquakes:
+  min_mag: 3.0
+  max_rad: 400
+  velocity_model: "ak135"
+  starttime: "2015-06-23"
+  endtime: "2016-04-30"
+
+# Array processing parameters-------------
+array_processing:
+  processing: "lts"
+  freq_min: 0.5
+  freq_max: 10
+  window_length: 2
+  window_step: 0.25
+  window_start: -1
+
+# STA/LTA trigger parameters--------------
+trigger:
+  timing: "trigger"
+  ptolerance: 5
+  multiple_triggers: "closest"
+  no_triggers: "max mdccm"
+  trig_freq_min: 1
+  trig_freq_max: 10
+  short_window: 0.05
+  long_window: 5
+  on_threshold: 20
+  off_threshold: 5
+
+# FK array processing-----------------------
+fk:
+  sll_x: -1.0
+  slm_x: 1.0
+  sll_y: -1.0
+  slm_y: 1.0
+  sl_s: 0.03
+  semb_thres: -1e9
+  vel_thres: -1e9
+  timestamp: "mlabday"
+  prewhiten: 0
