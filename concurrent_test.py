@@ -1,23 +1,23 @@
 from obspy import UTCDateTime
-
 import pandas as pd
-
 from obspy.core import UTCDateTime
-
 from obspy.clients.fdsn import Client
-
 from obspy.core import UTCDateTime
 from obspy import read_inventory
-
 from concurrent.futures import ProcessPoolExecutor, as_completed
+import yaml
+import sys
 
-#Functions needed for code----------------------------
+#Functions needed for processing----------------------------
 from array_functions import (data_from_inventory, get_geometry, pull_earthquakes,
                              check_num_stations, stations_available_generator,
                              array_time_window, moveout_time, grab_preprocess,
                              least_trimmed_squares, triggers, fk_obspy)
+
+#Functions needed for plotting----------------------------
 from array_figures import baz_error_spatial, slow_error_spatial
 
+from array_maps_pygmt import pygmt_array_earthquakes, pygmt_baz_error, pygmt_slow_error
 
 '''
 Conducts array analysis for a set array and number of events in the vicinity
@@ -38,12 +38,13 @@ Returns:
         
     '''
 
+#def preprocess_earthquakes():
 
 
 def process_event(event, event_ids, mag, eq_time, stations_lists, eq_slow,
                   eq_baz,expected_parrival,mseed_length,
                   station_info, inv, net, loc, chan, min_stations,
-                  client, array_name, save_mseed, mseed_path,
+                  array_name, save_mseed, mseed_path,
                   short_window, long_window, on_threshold, off_theshold, 
                   moveout, min_triggers, ptolerance, window_start, 
                   window_length, freq_min,freq_max, trig_freq_min, trig_freq_max,
@@ -54,6 +55,7 @@ def process_event(event, event_ids, mag, eq_time, stations_lists, eq_slow,
     try:
         print("Starting", event_ids[event], 'Ml', mag[event], eq_time[event])
 
+        client = Client('IRIS')
         stations = stations_lists[event]
         eq_slow_real = eq_slow[event]
         eq_baz_real = eq_baz[event]
@@ -68,7 +70,7 @@ def process_event(event, event_ids, mag, eq_time, stations_lists, eq_slow,
             stations, station_info, inv,
             net, loc, chan, min_stations,
             START, END, client, array_name,
-            event_id, save_mseed, mseed_path)
+            event_id, mseed_path, save_mseed)
 
         st1 = st.copy()
 
@@ -143,72 +145,78 @@ if __name__ == "__main__":
     #from array_functions import rotate_data
 
     ###############################
-    #----------INPUTS---------------
+    #----------LOAD INPUTS---------------
     ###############################
+    with open(sys.argv[1]) as f:
+        params = yaml.safe_load(f)
+        
+    #Network inputs----------
+    net = params["network"]["net"] 
+    sta = params["network"]["sta"]  
+    loc = params["network"]["loc"] 
+    chan = params["network"]["chan"] 
+    client = params["network"]["client"]
 
-    #station/array inputs----------
-    net = '9C' #9C, 4E, 5E, UW, XG
-    sta = 'POM*' #'2A*', '3A*', 'POM*', S1**, UIL*, LC*, IL*
-    loc = '*' #0
-    chan = 'SHZ' #SHZ, DHZ, HHZ
-    client = 'IRIS' #IRIS, GEOFON, path, #if 'path', create new variable path =
-    starttime = '2015-06-23' #'2015-10-01' , '2011-05-11' '2025-09-07'
-    endtime = '2016-04-30'#'2015-10-02' , '2013-05-01', '2025-11-13'
-    min_stations = 10 # if you only want times with all stations, list the number of stations
-    remove_stations =  []#['3A10', '3A15'] #['POM06', 'POM07', 'POM18'] #['3A10', '3A15'] # ['POM06', 'POM07', 'POM18']
-    keep_stations = [] 
-    array_name = 'POM' #2A, 3A, POM, KD, HM, S1, UIL
-    use_full_deployment = False #if True, searches for full deployment length in inventory and finds all events
-    path_to_inventory = None #if inventory object is stored locally
-    save_events = False #save the dataframe to CSV or not
-    save_stations = False #save station info
-    #mseed info
-    save_mseed = True #save mseeds
-    mseed_path = '/Users/cadequigley/Downloads/Research/deployment_array_design/POM_earthquakes_mseeds/'
-    mseed_length = 120 #seconds, centered on expected p-arrival
+    #Station inputs----------
+
+    min_stations = params["stations"]["min_stations"]
+    remove_stations = params["stations"]["remove_stations"]
+    keep_stations = params["stations"]["keep_stations"]
+    array_name = params["stations"]["array_name"]
+    use_full_deployment = params["stations"]["use_full_deployment"]
+    path_to_inventory = params["stations"]["path_to_inventory"]
+    save_events = params["stations"]["save_events"]
+    save_stations = params["stations"]["save_stations"]
+
+    #MSEED parameters-------------------
+    save_mseed = params["mseed"]["save_mseed"]
+    #mseed_path = '/Users/cadequigley/Downloads/Research/deployment_array_design/POM_earthquakes_mseeds/'
+    mseed_path = params["mseed"]["mseed_path"]
+    mseed_length = params["mseed"]["mseed_length"]
+
     #Earthquake inputs----------
-    min_mag = '3.0' #minimum magnitude
-    max_rad = '400' #maximum radius from arrays
-    velocity_model = 'ak135' #iasp91, pavdut, scak, ak135, #fix japan_1d
+    min_mag = str(params["earthquakes"]["min_mag"])
+    max_rad = str(params["earthquakes"]["max_rad"])
+    velocity_model = params["earthquakes"]["velocity_model"]
+    starttime = params["earthquakes"]["starttime"]
+    endtime = params["earthquakes"]["endtime"]
 
     #Array processing inputs---------------
-    processing = 'fk' #ls, fk, lts
-    FREQ_MIN = 1 #0.5 (Cade)
-    FREQ_MAX = 10.0 #10 (Cade)
-    #WINDOW_LENGTH = 2.5 #seconds
-    WINDOW_LENGTH = 2.5
-    WINDOW_SEP = 0.25
-    window_start = -1 #1 second before trigger
+    processing = params["array_processing"]["processing"]
+    FREQ_MIN = params["array_processing"]["freq_min"]
+    FREQ_MAX = params["array_processing"]["freq_max"]
+    WINDOW_LENGTH = params["array_processing"]["window_length"]
+    WINDOW_STEP = params["array_processing"]["window_step"]
+    window_start = params["array_processing"]["window_start"]
 
     # STA/LTA inputs-------------------
 
-    timing = 'trigger' #'power', 'trigger', NEED TO FIX POWER
+    timing = params["trigger"]["timing"]
     min_triggers = min_stations // 3 #minimum station triggers to associate
-    #min_triggers = 3
-    ptolerance = 5 #seconds, +/- around p-arrival
-    multiple_triggers = 'closest' #'closest', 'peak', 'first', which trigger to choose if multiple
-    no_triggers = 'max mdccm' #'max mdccm', 'taup', method to handle no triggers
+    ptolerance = params["trigger"]["ptolerance"]
+    multiple_triggers = params["trigger"]["multiple_triggers"]
+    no_triggers = params["trigger"]["no_triggers"]
 
     #Following inputs representative of EPIC parameters
-    trig_freq_min = 1
-    trig_freq_max = 10
-    short_window = 0.05 # 0.05 (EPIC), 2.5 (Cade)
-    long_window = 5 #  5(EPIC), 30 (Cade)
-    on_threshold = 20 # 20 (EPIC), 2.5 (Cade)
-    off_theshold = 5 # 1, 5 epic
+    trig_freq_min = params["trigger"]["trig_freq_min"]
+    trig_freq_max = params["trigger"]["trig_freq_max"]
+    short_window = params["trigger"]["short_window"]
+    long_window = params["trigger"]["long_window"]
+    on_threshold = params["trigger"]["on_threshold"]
+    off_theshold = params["trigger"]["off_threshold"]
 
     #Inputs for FK array processing---------
 
-    sll_x=-1.0 # X min, X max, Y min, Y max, Slow Step
-    slm_x=1.0 # X max
-    sll_y=-1.0 # Y min
-    slm_y=1.0 # Y max
-    sl_s=0.03 # Slow Step
-    semb_thres=-1e9
-    vel_thres=-1e9
-    timestamp='mlabday'
-    prewhiten = 0
-
+    sll_x = params["fk"]["sll_x"]
+    slm_x = params["fk"]["slm_x"]
+    sll_y = params["fk"]["sll_y"]
+    slm_y = params["fk"]["slm_y"]
+    sl_s = params["fk"]["sl_s"]
+    semb_thres = params["fk"]["semb_thres"]
+    vel_thres = params["fk"]["vel_thres"]
+    timestamp = params["fk"]["timestamp"]
+    prewhiten = params["fk"]["prewhiten"]
+    
     #%%
     ###############################
     #----------PROCESSING-----------
@@ -304,12 +312,13 @@ if __name__ == "__main__":
     if isinstance(WINDOW_LENGTH, (float,int)):
         WINDOW_LENGTH = [WINDOW_LENGTH]
 
-    #Loop through window lengths
+    #Loop through window lengths-------------
     for window in range(len(WINDOW_LENGTH)):
 
         window_length = WINDOW_LENGTH[window]
-        WINDOW_OVERLAP = (window_length-WINDOW_SEP)/window_length #0.25s between each window
-    #Loop through frequencies
+        WINDOW_OVERLAP = (window_length-WINDOW_STEP)/window_length #0.25s between each window
+
+        #Loop through frequencies-----------
         for freq in range(len(FREQ_MAX)):
             freq_min = FREQ_MIN[freq]
             freq_max = FREQ_MAX[freq]
@@ -317,40 +326,65 @@ if __name__ == "__main__":
 
             print('Starting analysis for', window_length, 's window and '+str(freq_min)+'-'+str(freq_max), ' Hz bandpass filter')
 
-
-            with ProcessPoolExecutor() as executor:
-                futures = [executor.submit(process_event, event, event_ids, mag, eq_time, stations_lists, eq_slow,
-                    eq_baz,expected_parrival, mseed_length,
-                    station_info, inv, net, loc, chan, min_stations,
-                    client, array_name, save_mseed, mseed_path,
-                    short_window, long_window, on_threshold, off_theshold, 
-                    moveout, min_triggers, ptolerance, window_start, 
-                    window_length, freq_min,freq_max, trig_freq_min, trig_freq_max,
-                    multiple_triggers, no_triggers, WINDOW_OVERLAP, sll_x, slm_x,
-                    sll_y, slm_y, sl_s, semb_thres,vel_thres, timestamp, prewhiten,
-                    timing, velocity_model, processing, origin_lat, origin_lon) for event in range(len(df))]
+            #Do analysis on each event-----------------------
+            #------------------------------------------------
+            with ProcessPoolExecutor() as executor: #splitting job onto multiple cores
+                futures = [executor.submit(process_event, event, event_ids, mag,
+                    eq_time, stations_lists, eq_slow, eq_baz,expected_parrival,
+                    mseed_length, station_info, inv, net, loc, chan, min_stations,
+                    array_name, save_mseed, mseed_path, short_window, long_window,
+                    on_threshold, off_theshold, moveout, min_triggers, ptolerance,
+                    window_start, window_length, freq_min,freq_max, trig_freq_min,
+                    trig_freq_max, multiple_triggers, no_triggers, WINDOW_OVERLAP,
+                    sll_x, slm_x, sll_y, slm_y, sl_s, semb_thres,vel_thres, 
+                    timestamp, prewhiten, timing, velocity_model, processing,
+                    origin_lat, origin_lon) for event in range(len(df))]
 
                 for i, future in enumerate(as_completed(futures)):
                     result = future.result()
 
                     if result is not None:
                         array_data_list.append(result)
+
+    ######## COMBINING AND SAVING DATA  #############################
+    
     #Putting data into single dataframe----------------------
     array_data_comb1 = pd.concat(array_data_list, ignore_index=True)
 
     #Combining with earthquake data-----------------------
     array_data_comb = pd.merge(array_data_comb1, df, on='event_id', how='inner')
 
-    #Save to csv if specified
+    #Save to csv-----------------------------------------------------
     if save_events == True:
-        array_data_comb.to_csv(array_name+'_'+max_rad+'km_m3_max_mdccm.csv')
+        array_data_comb.to_csv(array_name+'_'+max_rad+'km_m3_'+processing+'_window_freq_test.csv')
 
     if save_stations == True:
-        station_info.to_csv(array_name+'_'+max_rad+'km_m3_stations.csv')
+        station_info.to_csv(array_name+'_'+max_rad+'km_m3_'+processing+'_stations.csv')
 
-    #Plot some figures
+    
+    ###############################
+    #PLOT SOME FIGURES-------------
+    ###############################
+
     df = array_data_comb
 
+    #Plot map of earthquakes-----------------------------
+    #array_lats = [53.6974, 53.779, 53.8566]  
+    #array_lons = [-166.7343, -166.2131,-166.4161]
+    array_lats = [float(origin_lat)]
+    array_lons = [float(origin_lon)]
+    array_names = [array_name]
+    array_names = []
+    earthquake_lats = df['latitude'].to_numpy()
+    earthquake_lons = df['longitude'].to_numpy()
+    earthquake_mags = df['magnitude'].to_numpy()
+    earthquake_depths = df['depth'].to_numpy()
+
+    pygmt_array_earthquakes(array_lats, array_lons, array_names, earthquake_lats,
+                            earthquake_lons, earthquake_mags, earthquake_depths,
+                            save=False, path = '/Users/cadequigley/Downloads/Research/deployment_array_design/POM_eq_map_SSA.png')
+
+    #Plot the baz/slow error-------------------------------------------
     drop = True #drop Taup picks, i.e. events without an STA/LTA pick
 
     if drop ==True:
@@ -362,6 +396,30 @@ if __name__ == "__main__":
     color_data = df['distance']
     color_label = 'distance (km)'
     model_data = []
-    baz_error_spatial(df['backazimuth'], df['baz_error'], model_data, color_data, color_label, niazi = True)
+    baz_error_spatial(df['backazimuth'], df['baz_error'], model_data, color_data, 
+                      color_label, niazi = True, save = False, path = '/Users/cadequigley/Downloads/Research/deployment_array_design/POM_baz_error_SSA.png')
 
-    slow_error_spatial(df['backazimuth'], df['slow_error'], model_data, color_data, color_label, niazi = True)
+    slow_error_spatial(df['backazimuth'], df['slow_error'], model_data, 
+                       color_data, color_label, niazi = True, save = False, path = '/Users/cadequigley/Downloads/Research/deployment_array_design/POM_slow_error_SSA.png')
+
+    
+
+    #Plot baz error on map-----------------------------
+    baz = df['backazimuth'].to_numpy()
+    baz_error = df['baz_error'].to_numpy()
+    slow_error = df['slow_error'].to_numpy()
+    earthquake_lats = df['latitude'].to_numpy()
+    earthquake_lons = df['longitude'].to_numpy()
+    earthquake_mags = df['magnitude'].to_numpy()
+    earthquake_depths = df['depth'].to_numpy()
+
+    pygmt_baz_error(array_lats[0], array_lons[0], array_name, earthquake_lats, 
+                    earthquake_lons, earthquake_mags, baz, baz_error, save = False, 
+                    path = '/Users/cadequigley/Downloads/Research/deployment_array_design/POM_baz_error_map_SSA.png')
+    
+    #Plot slow error on map-----------------------------
+    pygmt_slow_error(array_lats[0], array_lons[0], array_name, earthquake_lats, 
+                    earthquake_lons, earthquake_mags, slow_error, save = False, 
+                    path = '/Users/cadequigley/Downloads/Research/deployment_array_design/POM_slow_error_map_SSA.png')
+    
+    
