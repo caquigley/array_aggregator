@@ -92,6 +92,7 @@ def least_trimmed_squares(processing, st, sta_lats, sta_lons, WINDOW_LENGTH,
                                                     WINDOW_LENGTH, 
                                                     WINDOW_OVERLAP, 
                                                     ALPHA)
+    #print('Length of data:', len(lts_vel))
 
     if len(lts_baz) >1: #pulling out max cross correlation
         print('Pulling out max mdccm')
@@ -270,10 +271,10 @@ def stations_available_generator_hm_kd(
 
     return stations_lists, stations_available, deployment_all
 
-
+'''
 def process_hm_kd_data(net, sta, loc, chan,  starttime, endtime, array_name, array, processing, 
                  FREQ_MIN, FREQ_MAX, WINDOW_LENGTH, WINDOW_OVERLAP, window_start, min_mag, max_rad,
-                 short_window, long_window, on_threshold, off_theshold, client = Client('IRIS'), remove_stations = [], keep_stations = [], 
+                 short_window, long_window, on_threshold, off_theshold, client = Client('EARTHSCOPE'), remove_stations = [], keep_stations = [], 
                  gain = None, min_stations = 3, use_full_deployment = False, save = False, velocity_model = 'iasp91', 
                  timing = 'trigger', min_triggers = 1, ptolerance = 5, multiple_triggers = 'peak', no_triggers = 'taup', sll_x = -1.0,
                  slm_x = 1.0, sll_y=-1.0, slm_y = 1.0, sl_s = 0.03, semb_thres = -1e9, vel_thres = -1e9, timestamp = 'mlabday', prewhiten = 0):
@@ -489,7 +490,7 @@ def process_hm_kd_data(net, sta, loc, chan,  starttime, endtime, array_name, arr
         
     return array_data_comb, station_info
 
-
+'''
 ############################################################
 #### FUNCTIONS FOR PREPROCESSING ###########################
 ############################################################
@@ -498,7 +499,7 @@ def process_hm_kd_data(net, sta, loc, chan,  starttime, endtime, array_name, arr
 
 def grab_preprocess(stations, station_info, inv, 
                     net, loc, chan, min_stations, 
-                    START, END, client, array, event_id, save_mseed = False, path = None):
+                    START, END, client, array, event_id, path, save_mseed = False):
     
     station_sub = station_info[station_info['station'].isin(stations)] #pull out specific station info
         
@@ -509,7 +510,8 @@ def grab_preprocess(stations, station_info, inv,
 
     try: #Try to pull event from locally
         
-        st = read('/Users/cadequigley/Downloads/Research/deployment_array_design/'+array+'_earthquakes_mseeds/'+event_id+".mseed")
+        #st = read('/Users/cadequigley/Downloads/Research/deployment_array_design/'+array+'_earthquakes_mseeds/'+event_id+".mseed")
+        st = read(path+event_id+'.mseed')
         st = st.slice(START, END)
         stations = set(tr.stats.station for tr in st)
         station_sub = station_info[station_info['station'].isin(stations)] #pull out specific station info

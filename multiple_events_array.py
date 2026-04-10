@@ -15,6 +15,7 @@ from array_functions import (data_from_inventory, get_geometry, pull_earthquakes
                              array_time_window, moveout_time, grab_preprocess,
                              least_trimmed_squares, triggers, fk_obspy)
 from array_figures import baz_error_spatial, slow_error_spatial
+from array_maps_pygmt import pygmt_array_earthquakes, pygmt_baz_error
 
 
 '''
@@ -44,23 +45,24 @@ Returns:
 
 #station/array inputs----------
 net = '9C' #9C, 4E, 5E, UW, XG
-sta = '3A*' #'2A*', '3A*', 'POM*', S1**, UIL*, LC*, IL*
+sta = 'POM*' #'2A*', '3A*', 'POM*', S1**, UIL*, LC*, IL*
 loc = '*' #0
 chan = 'SHZ' #SHZ, DHZ, HHZ
 client = 'IRIS' #IRIS, GEOFON, path, #if 'path', create new variable path =
 starttime = '2015-06-23' #'2015-10-01' , '2011-05-11' '2025-09-07'
 endtime = '2016-04-30'#'2015-10-02' , '2013-05-01', '2025-11-13'
 min_stations = 10 # if you only want times with all stations, list the number of stations
-remove_stations =  ['3A10', '3A15']#['3A10', '3A15'] #['POM06', 'POM07', 'POM18'] #['3A10', '3A15'] # ['POM06', 'POM07', 'POM18']
+remove_stations =  ['POM06', 'POM07', 'POM18']#['3A10', '3A15'] #['POM06', 'POM07', 'POM18'] #['3A10', '3A15'] # ['POM06', 'POM07', 'POM18']
 keep_stations = [] 
-array_name = '3A' #2A, 3A, POM, KD, HM, S1, UIL
+array_name = 'POM' #2A, 3A, POM, KD, HM, S1, UIL
 use_full_deployment = False #if True, searches for full deployment length in inventory and finds all events
 path_to_inventory = None #if inventory object is stored locally
 save_events = False #save the dataframe to CSV or not
 save_stations = False #save station info
 #mseed info
 save_mseed = True #save mseeds
-mseed_path = '/Users/cadequigley/Downloads/Research/deployment_array_design/3A_earthquakes_mseeds/'
+#mseed_path = '/Users/cadequigley/Downloads/Research/deployment_array_design/POM_earthquakes_mseeds/'
+mseed_path = './POM_earthquakes_mseeds/'
 mseed_length = 120 #seconds, centered on expected p-arrival
 #Earthquake inputs----------
 min_mag = '3.0' #minimum magnitude
@@ -69,11 +71,11 @@ velocity_model = 'ak135' #iasp91, pavdut, scak, ak135, #fix japan_1d
 
 #Array processing inputs---------------
 processing = 'fk' #ls, fk, lts
-FREQ_MIN = 1 #0.5 (Cade)
+FREQ_MIN = 0.5 #0.5 (Cade)
 FREQ_MAX = 10.0 #10 (Cade)
-#WINDOW_LENGTH = 2.5 #seconds
-WINDOW_LENGTH = [2.5, 4.5]
-WINDOW_SEP = 0.25
+WINDOW_LENGTH = 2.5 #seconds
+#WINDOW_LENGTH = [2.5, 4.5]
+WINDOW_STEP = 0.25
 window_start = -1 #1 second before trigger
 
 # STA/LTA inputs-------------------
@@ -204,7 +206,7 @@ if isinstance(WINDOW_LENGTH, (float,int)):
 for window in range(len(WINDOW_LENGTH)):
 
     window_length = WINDOW_LENGTH[window]
-    WINDOW_OVERLAP = (window_length-WINDOW_SEP)/window_length #0.25s between each window
+    WINDOW_OVERLAP = (window_length-WINDOW_STEP)/window_length #0.25s between each window
 #Loop through frequencies
     for freq in range(len(FREQ_MAX)):
         freq_min = FREQ_MIN[freq]
@@ -232,7 +234,7 @@ for window in range(len(WINDOW_LENGTH)):
                 sta_lons, sta_elev) = grab_preprocess(stations, station_info, inv, 
                                                     net, loc, chan, min_stations, 
                                                     START, END, client, array_name,
-                                                    event_id, save_mseed, mseed_path)
+                                                    event_id, mseed_path, save_mseed)
                 #%%
                 
                 
@@ -338,5 +340,24 @@ baz_error_spatial(df['backazimuth'], df['baz_error'], model_data, color_data, co
 
 slow_error_spatial(df['backazimuth'], df['slow_error'], model_data, color_data, color_label, niazi = True)
 
+#Plot map of earthquakes-----------------------------
+array_lats = [53.6974, 53.779, 53.8566]  
+array_lons = [-166.7343, -166.2131,-166.4161]
+array_names = ['2A', '3A', 'POM']
+array_names = []
+earthquake_lats = df['latitude'].to_numpy()
+earthquake_lons = df['longitude'].to_numpy()
+earthquake_mags = df['magnitude'].to_numpy()
+earthquake_depths = df['depth'].to_numpy()
+
+pygmt_array_earthquakes(array_lats, array_lons, array_names, earthquake_lats, earthquake_lons, earthquake_mags, earthquake_depths, save=False, path = None)
+
+#Plot baz error on map-----------------------------
+baz = df['backazimuth'].to_numpy()
+baz_error = df['baz_error'].to_numpy()
+
+pygmt_baz_error(array_lats[0], array_lons[0], array_name, earthquake_lats, 
+                earthquake_lons, earthquake_mags, baz, baz_error, save = False, 
+                path = None)
 
 # %%

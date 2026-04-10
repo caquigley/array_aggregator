@@ -4,7 +4,7 @@ network:
   sta: "POM*"
   loc: "*"
   chan: "SHZ"
-  client: "EARTHSCOPE"
+  client: "IRIS"
 
 stations:
   min_stations: 10
@@ -32,7 +32,7 @@ earthquakes:
 
 # Array processing parameters-------------
 array_processing:
-  processing: "lts"
+  processing: "fk"
   freq_min: 0.5
   freq_max: 10
   window_length: 2
@@ -63,3 +63,13 @@ fk:
   vel_thres: -1e9
   timestamp: "mlabday"
   prewhiten: 0
+
+# Plots -----------------------
+plots:
+  earthquake_map: true
+  baz_error: true
+  slow_error: true
+  baz_error_map: true
+  slow_error_map: true
+  save_fig: false
+  fig_path: './figures/'

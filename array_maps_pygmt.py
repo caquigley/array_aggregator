@@ -43,7 +43,7 @@ def pygmt_array_earthquakes(array_lats, array_lons, array_names, earthquake_lats
     -250   167 174 182      0 167 174 182
     0      240 240 240   9000 240 240 240
     """
-
+    
     # Create a temporary file for the CPT
     with tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix='.cpt') as tmp_cpt:
         tmp_cpt.write(AEC_BASEMAP_CPT)
@@ -75,7 +75,7 @@ def pygmt_array_earthquakes(array_lats, array_lons, array_names, earthquake_lats
 
     #Define projection and grid map resolution (for BOTH maps)
 
-    sizes = list(np.ones(len(array_lats))*400)
+    sizes = list(np.ones(len(array_lats))*300)
 
     #Grabs larger scale map
     left = np.min(df['longitude'])
@@ -110,50 +110,45 @@ def pygmt_array_earthquakes(array_lats, array_lons, array_names, earthquake_lats
     
         #pyGMT basemap with topography figure
         fig = pygmt.Figure()
-        #pygmt.config(FORMAT_GEO_MAP="ddd.x", MAP_FRAME_TYPE="plain", MAP_FRAME_AXES='lrbt', MAP_FRAME_PEN='1p') #Formatting
-        pygmt.config(FORMAT_GEO_MAP="ddd.x",  MAP_FRAME_PEN='1p') #Formatting
+        pygmt.config(FORMAT_GEO_MAP="ddd.x", MAP_FRAME_TYPE="plain",  MAP_FRAME_PEN='1p') #Formatting, MAP_FRAME_AXES='lrbt',
+        #pygmt.config(FORMAT_GEO_MAP="ddd.x",  MAP_FRAME_PEN='1p') #Formatting
     
         #Add topography basemap (DEM)
         fig.basemap(frame=True, region=region_rect, projection=projection)
     #fig.coast(dcw="US.AK+p0.25p")
     
     #Define outline and color pallete of basemap
-        fig.coast( shorelines=True, water='#C6E2EE', borders="1/1p,black") #frame=[fig_title]
+        #fig.coast( water='#C6E2EE', borders="10/10p,black", shorelines="1/0.5p,black") #frame=[fig_title], shorelines=True,
         dgrid = pygmt.grdgradient(grid=load_grid, radiance=[270,30])
         pygmt.makecpt(cmap=tmp_cpt_path)
     #pygmt.makecpt(cmap=CPT_Option)  #, series=[-1.5, 0.3, 0.01])
    
-        fig.grdimage(grid=load_grid, shading='+a300+nt0.8', cmap=True)
+        fig.grdimage(grid=load_grid, shading='+a300+nt0.8', cmap=True, transparency=35)
+
+        fig.coast( water=None, borders="10/10p,black", shorelines="1/0.5p,black")
+
+        fig.plot(x=list(array_lons), y=list(array_lats), size=[400], style="E-", pen="1.5p,black,-")
         
         #Plot earthquakes------------------------------------------------------------
-        trans = 50
-        #fig.plot(x=deep_sm['longitude'], y=deep_sm['latitude'], size=amplitude*(1.8**deep_sm['magnitude']), #normalized_mag
-             #style="cc", pen='0.5p,black', fill = '#4D0010', transparency  = trans) #darkbrown, gray14
-        
-        #fig.plot(x=intermediate_sm['longitude'], y=intermediate_sm['latitude'], size=amplitude*(1.8**intermediate_sm['magnitude']), #0.015
-             #style="cc", pen='0.5p,black', fill = 'gold1', transparency = trans) #gold1, gray40, #EBB41E
-
-        #fig.plot(x=shallow_sm['longitude'], y=shallow_sm['latitude'], size=amplitude*(1.8**shallow_sm['magnitude']),
-             #style="cc", pen='0.5p,black', fill = 'firebrick',transparency = trans) #firebrick, gray66, #FB0006
 
         #Plot earthquakes------------------------------------------------------------
         if len(deep)>0:
-            fig.plot(x=deep['longitude'], y=deep['latitude'], size=amplitude*(1.7**deep['magnitude']),
+            fig.plot(x=deep['longitude'], y=deep['latitude'], size=amplitude*(1.6**deep['magnitude']),
                  style="cc", pen='0.5p,black', fill = '#4D0010') #darkbrown, gray14
         
-        fig.plot(x=intermediate['longitude'], y=intermediate['latitude'], size=amplitude*(1.7**intermediate['magnitude']), #2.1
+        fig.plot(x=intermediate['longitude'], y=intermediate['latitude'], size=amplitude*(1.6**intermediate['magnitude']), #2.1
              style="cc", pen='0.5p,black', fill = 'gold1') #gold1, gray40, #EBB41E
 
-        fig.plot(x=shallow['longitude'], y=shallow['latitude'], size=amplitude*(1.7**shallow['magnitude']),
+        fig.plot(x=shallow['longitude'], y=shallow['latitude'], size=amplitude*(1.6**shallow['magnitude']),
              style="cc", pen='0.5p,black', fill = 'firebrick') #firebrick, gray66, #FB0006
 
         
 
         #Create earthquakes for size scaling----------------
-        #tempx = [-151,-151,-151,-151,-151]
-        #tempy = [57,57.1,57.2, 57.5, 58]
-        #tempmag = [1,2,3,4,5]
-        #fig.plot(x = tempx, y = tempy, size = 0.032*(2.1**np.array(tempmag)), style="cc", pen='0.5p,black', fill = 'whitesmoke')
+        #tempx = [-171,-171,-171, -171]
+        #tempy = [52.2, 52.5, 53, 54]
+        #tempmag = [3,4,5,6]
+        #fig.plot(x = tempx, y = tempy, size = amplitude*(1.6**np.array(tempmag)), style="cc", pen='0.5p,black', fill = 'whitesmoke')
 
 
         #Plot mini arrays-----------------------------------------------------------------
@@ -277,8 +272,8 @@ def pygmt_baz_error(array_lat, array_lon, array_name, earthquake_lats, earthquak
     
         #pyGMT basemap with topography figure
         fig = pygmt.Figure()
-        #pygmt.config(FORMAT_GEO_MAP="ddd.x", MAP_FRAME_TYPE="plain", MAP_FRAME_AXES='lrbt', MAP_FRAME_PEN='1p') #Formatting
-        pygmt.config(FORMAT_GEO_MAP="ddd.x",  MAP_FRAME_PEN='1p') #Formatting
+        pygmt.config(FORMAT_GEO_MAP="ddd.x", MAP_FRAME_TYPE="plain", MAP_FRAME_PEN='1p') #Formatting, MAP_FRAME_AXES='lrbt'
+        #pygmt.config(FORMAT_GEO_MAP="ddd.x",  MAP_FRAME_PEN='1p') #Formatting
     
         #Add topography basemap (DEM)
         fig.basemap(frame=True, region=region_rect, projection=projection)
@@ -320,6 +315,16 @@ def pygmt_baz_error(array_lat, array_lon, array_name, earthquake_lats, earthquak
                  y = array_lat,
                  style = "i1c",pen = '0.5p,#3e000d', size = [600], fill = 'gold1')
         
+        #Plot vector for reference length---------
+        #fig.plot(x=-162,
+               # y=51,
+                #direction = [90, 0.06*20],
+                #direction = [baz_array_pygmt, [length]],
+                #style="v0.5c+ea",
+                #fill = "red3",
+                #fill="royalblue",
+                #pen="1.0p")
+        
         
     
         
@@ -340,7 +345,7 @@ def pygmt_baz_error(array_lat, array_lon, array_name, earthquake_lats, earthquak
 
 def pygmt_slow_error(array_lat, array_lon, array_name, earthquake_lats, earthquake_lons, earthquake_mags, slow_error, save = False, path = None):
     
-    length = 3 #vector length
+    length = 2 #vector length
     
     df6 = pd.DataFrame(slow_error, columns = ['slow_error'])
     df6['lat'] = earthquake_lats
@@ -404,8 +409,8 @@ def pygmt_slow_error(array_lat, array_lon, array_name, earthquake_lats, earthqua
     
         #pyGMT basemap with topography figure
         fig = pygmt.Figure()
-        #pygmt.config(FORMAT_GEO_MAP="ddd.x", MAP_FRAME_TYPE="plain", MAP_FRAME_AXES='lrbt', MAP_FRAME_PEN='1p') #Formatting
-        pygmt.config(FORMAT_GEO_MAP="ddd.x",  MAP_FRAME_PEN='1p') #Formatting
+        pygmt.config(FORMAT_GEO_MAP="ddd.x", MAP_FRAME_TYPE="plain", MAP_FRAME_PEN='1p') #Formatting , MAP_FRAME_AXES='lrbt',
+        #pygmt.config(FORMAT_GEO_MAP="ddd.x",  MAP_FRAME_PEN='1p') #Formatting
     
         #Add topography basemap (DEM)
         fig.basemap(frame=True, region=region_rect, projection=projection)
@@ -429,7 +434,7 @@ def pygmt_slow_error(array_lat, array_lon, array_name, earthquake_lats, earthqua
                 ###Plot slowness error
         fig.plot(x=pos_error['lon'],
                 y=pos_error['lat'],
-                direction = [90*np.ones(len(pos_error)),50*pos_error['slow_error']],
+                direction = [90*np.ones(len(pos_error)),20*pos_error['slow_error']],
                 #direction = [baz_array_pygmt, [length]],
                 style="v0.5c+ea",
                 fill = "purple1",
@@ -439,7 +444,7 @@ def pygmt_slow_error(array_lat, array_lon, array_name, earthquake_lats, earthqua
         
         fig.plot(x=neg_error['lon'],
                 y=neg_error['lat'],
-                direction = [90*np.ones(len(neg_error)),50*neg_error['slow_error']],
+                direction = [90*np.ones(len(neg_error)),20*neg_error['slow_error']],
                 #direction = [baz_array_pygmt, [length]],
                 style="v0.5c+ea",
                 #fill = "cyan4",
@@ -449,6 +454,16 @@ def pygmt_slow_error(array_lat, array_lon, array_name, earthquake_lats, earthqua
         fig.plot(x = array_lon,
                  y = array_lat,
                  style = "i1c",pen = '0.5p,#3e000d', size = [600], fill = 'gold1')
+        
+        #Example reference length----
+        #fig.plot(x=-162,
+                #y=51,
+               # direction = [90, 20*0.05],
+                #direction = [baz_array_pygmt, [length]],
+                #style="v0.5c+ea",
+                #fill = "red3",
+                #fill="royalblue",
+                #pen="1.0p")
     
         
         #Plot text---------------------------------------------
@@ -625,8 +640,8 @@ def pygmt_single_event(index, array_lats, array_lons, earthquake_lats, earthquak
     
         #pyGMT basemap with topography figure
         fig = pygmt.Figure()
-        #pygmt.config(FORMAT_GEO_MAP="ddd.x", MAP_FRAME_TYPE="plain", MAP_FRAME_AXES='lrbt', MAP_FRAME_PEN='1p') #Formatting
-        pygmt.config(FORMAT_GEO_MAP="ddd.x",  MAP_FRAME_PEN='1p') #Formatting
+        pygmt.config(FORMAT_GEO_MAP="ddd.x", MAP_FRAME_TYPE="plain",  MAP_FRAME_PEN='1p') #Formatting, MAP_FRAME_AXES='lrbt',
+       #pygmt.config(FORMAT_GEO_MAP="ddd.x",  MAP_FRAME_PEN='1p') #Formatting
     
         #Add topography basemap (DEM)
         fig.basemap(frame=True, region=region_rect, projection=projection)
@@ -809,8 +824,8 @@ def pygmt_network_subarrays(array_lats, array_lons, earthquake_lat, earthquake_l
     
         #pyGMT basemap with topography figure
         fig = pygmt.Figure()
-        #pygmt.config(FORMAT_GEO_MAP="ddd.x", MAP_FRAME_TYPE="plain", MAP_FRAME_AXES='lrbt', MAP_FRAME_PEN='1p') #Formatting
-        pygmt.config(FORMAT_GEO_MAP="ddd.x",  MAP_FRAME_PEN='1p') #Formatting
+        pygmt.config(FORMAT_GEO_MAP="ddd.x", MAP_FRAME_TYPE="plain",  MAP_FRAME_PEN='1p') #Formatting, MAP_FRAME_AXES='lrbt',
+        #pygmt.config(FORMAT_GEO_MAP="ddd.x",  MAP_FRAME_PEN='1p') #Formatting
     
         #Add topography basemap (DEM)
         fig.basemap(frame=True, region=region_rect, projection=projection)
