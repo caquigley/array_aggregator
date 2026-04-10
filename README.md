@@ -24,15 +24,16 @@ Small aperture arrays have grown in interest in the earthquake monitoring and Ea
 
 Create a fork of this repository to your github. Then, create a local repository through your terminal. For example:
 
-'''
+```python
 git clone <github_link_to_repo>
-'''
+```
 
 A conda environment with the needed dependencies are provided in environment.yaml. This can be created with the following command in your local repository:
 
-'''
+```python
 conda env create -f environment.yml
-'''
+```
+
 This will create a environment called arrayseis with the following dependencies:
 - python3
 - obspy
@@ -44,17 +45,17 @@ This will create a environment called arrayseis with the following dependencies:
 
 Once your python environment is installed, this can be activated as:
 
-'''
+```python
 conda activate arrayseis
-'''
+```
 
 The input parameters for the code can be found in the input_parameters.yaml file. The possible inputs are found in the documentation
 
 In your local repository, the main code can be run as:
 
-'''
+```python
 python array_aggregator.py input_parameters.yaml
-'''
+```
 
 
 ## Example
