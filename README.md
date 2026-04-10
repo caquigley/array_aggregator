@@ -68,4 +68,4 @@ For project task 1, I will be implementing parallel/concurrency into my code.
 For project task 2, I will be doing a parameter input system. In addition, I will also either incorporate Chinook Compatability or Advanced Documentation.
 
 ## For class reviewers
-The relevant python file for class reviews is multiple_events_array.py. The other main file is array_functions.py, but I'll leave this up to your discretion.
+The relevant python file for class reviews is array_aggregator.py. The other main file is array_functions.py, but I'll leave this up to your discretion.
