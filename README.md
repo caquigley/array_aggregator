@@ -1,6 +1,8 @@
 # array_aggregator
 Code for assessing array accuracy on a set of earthquakes. Final project for GEOS694 Computational Geosciences (Bryant Chow).
 
+## Version: 1.0.0
+
 ## What
 This code is for assessing the accuracy and precision of small-aperture seismic arrays at recording earthquakes or other seismicity.
 
