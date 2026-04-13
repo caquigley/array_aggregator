@@ -232,7 +232,10 @@ def process_event(event, event_ids, mag, eq_time, stations_lists, eq_slow,
         eq_baz_real = eq_baz[event]
         event_id = event_ids[event]
 
-        START = UTCDateTime(eq_time[event]) + expected_parrival[event] - (mseed_length/2)
+        START = (UTCDateTime(eq_time[event])
+            + expected_parrival[event]
+            - (mseed_length / 2)
+            )
         END = START + mseed_length
 
         # Grab and preprocess data
@@ -353,9 +356,10 @@ if __name__ == "__main__":
     
     #Pull station information out of inventory
     (lat_list, lon_list, elev_list, station_d1_list,
-    start_d1_list, end_d1_list, num_channels_d1_list) = data_from_inventory(inv, 
-                                                                            remove_stations, 
-                                                                            keep_stations)
+    start_d1_list, end_d1_list, num_channels_d1_list) = data_from_inventory(
+        inv,
+        remove_stations,
+        keep_stations)
 
     #Check if enough stations present to continue
     check = check_num_stations(min_stations, station_d1_list)
@@ -374,7 +378,8 @@ if __name__ == "__main__":
     ###############################
 
     (df, moveout, origin_lat, 
-     origin_lon, stations_lists) = preprocess_earthquakes(lat_list, lon_list, elev_list, use_full_deployment, 
+     origin_lon, stations_lists) = preprocess_earthquakes(lat_list, 
+                           lon_list, elev_list, use_full_deployment, 
                            start_d1_list, end_d1_list, starttime, endtime, 
                            max_rad, min_mag, array_name, velocity_model,
                            min_stations)
@@ -410,8 +415,9 @@ if __name__ == "__main__":
             freq_max = FREQ_MAX[freq]
 
 
-            print('Starting analysis for', window_length, 's window and '+str(freq_min)+'-'+str(freq_max), ' Hz bandpass filter')
-
+            print(f"Starting analysis for {window_length} s window "
+                f"and {freq_min}-{freq_max} Hz bandpass filter")
+            
             #Do analysis on each event-----------------------
             #------------------------------------------------
             with ProcessPoolExecutor() as executor: #splitting job onto multiple cores
@@ -444,7 +450,8 @@ if __name__ == "__main__":
 
     #Save to csv-----------------------------------------------------
     if save_events == True:
-        array_data_comb.to_csv(array_name+'_'+max_rad+'km_m3_'+processing+'_window_freq_test.csv')
+        array_data_comb.to_csv(array_name+'_'+max_rad+'km_m3_'+processing
+                               +'_window_freq_test.csv')
 
     if save_stations == True:
         station_info.to_csv(array_name+'_'+max_rad+'km_m3_'+processing+'_stations.csv')
@@ -485,11 +492,28 @@ if __name__ == "__main__":
     model_data = []
     
     if baz_error_plot == True:
-        baz_error_spatial(df['backazimuth'], df['baz_error'], model_data, color_data, 
-                        color_label, niazi = True, save = save_fig, path = fig_path+'baz_error_spatial.png')#path = '/Users/cadequigley/Downloads/Research/deployment_array_design/POM_baz_error_SSA.png')
+        baz_error_spatial(
+            df["backazimuth"],
+            df["baz_error"],
+            model_data,
+            color_data,
+            color_label,
+            niazi=True,
+            save=save_fig,
+            path=fig_path + "baz_error_spatial.png",
+        )   #path = '/Users/cadequigley/Downloads/Research/deployment_array_design/POM_baz_error_SSA.png')
+
     if slow_error_plot == True:
-        slow_error_spatial(df['backazimuth'], df['slow_error'], model_data, 
-                        color_data, color_label, niazi = True, save = save_fig, path = fig_path+'slow_error_spatial.png')#path = '/Users/cadequigley/Downloads/Research/deployment_array_design/POM_slow_error_SSA.png')
+        slow_error_spatial(
+            df["backazimuth"],
+            df["slow_error"],
+            model_data,
+            color_data,
+            color_label,
+            niazi=True,
+            save=save_fig,
+            path=fig_path + "slow_error_spatial.png",
+        )   #path = '/Users/cadequigley/Downloads/Research/deployment_array_design/POM_slow_error_SSA.png')
 
     #Plot baz error on map-----------------------------
     #----------------------------------------------------
