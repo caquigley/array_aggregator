@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import pygmt
+#from pygmt.params import Position, Box
 import matplotlib.pyplot as plt
 
 import tempfile
@@ -22,12 +23,47 @@ from pyproj import Geod
 
 
 
+def basemap_cpt(cpt_type):
+    '''
+    Define and create temporary CPTs for pygmt basemaps.
 
-#array_lats = []
-#array_lons = []
-#array_names = []
-def pygmt_array_earthquakes(array_lats, array_lons, array_names, earthquake_lats, earthquake_lons, earthquake_mag, earthquake_depth, save=False, path = None):
+    Inputs:
 
+    
+    Output:
+    '''
+    
+    if cpt_type == "AEC":
+            
+        # DEFINE CPT BASED ON AEC BASEMAP
+        BASEMAP_CPT = """
+        # COLOR_MODEL = RGB
+        -12000  76  81  88  -7000  76  81  88
+        -7000  111 117 124  -6000 111 117 124
+        -6000  122 129 136  -5000 122 129 136
+        -5000  131 137 144  -4000 131 137 144
+        -4000  139 146 153  -3000 139 146 157
+        -3000  142 149 157  -2000 142 149 157
+        -2000  154 161 168  -1000 154 161 168
+        -1000  162 168 176   -500 162 168 176
+        -500   165 172 179   -250 165 172 179
+        -250   167 174 182      0 167 174 182
+        0      240 240 240   9000 240 240 240
+        """
+        
+    
+    with tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix='.cpt') as tmp_cpt:
+        tmp_cpt.write(BASEMAP_CPT)
+        tmp_cpt_path = tmp_cpt.name  # Save path to use later
+
+    return tmp_cpt_path
+
+
+
+def pygmt_array_earthquakes(array_lats, array_lons, array_names, earthquake_lats, earthquake_lons, earthquake_mag, earthquake_depth, save=False, path = None, cpt_type ='AEC'):
+
+    '''
+    
     # DEFINE CPT BASED ON AEC BASEMAP
     AEC_BASEMAP_CPT = """
     # COLOR_MODEL = RGB
@@ -48,8 +84,9 @@ def pygmt_array_earthquakes(array_lats, array_lons, array_names, earthquake_lats
     with tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix='.cpt') as tmp_cpt:
         tmp_cpt.write(AEC_BASEMAP_CPT)
         tmp_cpt_path = tmp_cpt.name  # Save path to use later
+    '''
 
-
+    tmp_cpt_path = basemap_cpt("AEC")
     amplitude = 0.05 #0.2
 
     pygmt.config(FORMAT_GEO_MAP="ddd.x") # Highlevel formatting (no ticks, no labels)
@@ -68,9 +105,7 @@ def pygmt_array_earthquakes(array_lats, array_lons, array_names, earthquake_lats
     shallow = df[df['depth'] <= 35]
     intermediate = df[(df['depth'] > 35) & (df['depth'] <= 100)]
     deep = df[df['depth'] > 100]
-    #shallow_sm = df[df['depth'] <= 35]
-   # intermediate_sm = df[(df['depth'] > 35) & (df['depth'] <= 100)]
-    #deep_sm = df[df['depth'] > 100]
+    
 
 
     #Define projection and grid map resolution (for BOTH maps)
@@ -85,24 +120,14 @@ def pygmt_array_earthquakes(array_lats, array_lons, array_names, earthquake_lats
 
     region = [left-5, right+5, bottom-5, top+5]
 
-#region=[-170,-140,50,68]
-    #region_rect = str(left-0.5)+"/"+str(bottom-0.5)+"/"+str(right+0.5)+"/"+str(top+0.5)
     region_rect = str(left-0.5)+"/"+str(bottom-0.5)+"/"+str(right+0.5)+"/"+str(top+0.5)+"r"
-#region_rect = "-162/52/-142/64r"
 
-#rectangular designation for plotted mat
-
-    # ADD north or south hemisphere check
-
-    
-    #if north == True:
-        #hemisphere = 90
     projection="M0/0/12c"
     
-    #projection = f'S210/{hemisphere}/8i'
+    
 
     run_topo = True
-##---Begin basemap w/ only AK topography---##
+
 
     if run_topo == True:
     # Load topography
@@ -114,7 +139,7 @@ def pygmt_array_earthquakes(array_lats, array_lons, array_names, earthquake_lats
         #pygmt.config(FORMAT_GEO_MAP="ddd.x",  MAP_FRAME_PEN='1p') #Formatting
     
         #Add topography basemap (DEM)
-        fig.basemap(frame=True, region=region_rect, projection=projection)
+        fig.basemap(frame=True, region=region_rect, projection=projection, map_scale="jBR+w200k+o0.5c/0.5c+f+lkm")
     #fig.coast(dcw="US.AK+p0.25p")
     
     #Define outline and color pallete of basemap
@@ -123,11 +148,12 @@ def pygmt_array_earthquakes(array_lats, array_lons, array_names, earthquake_lats
         pygmt.makecpt(cmap=tmp_cpt_path)
     #pygmt.makecpt(cmap=CPT_Option)  #, series=[-1.5, 0.3, 0.01])
    
-        fig.grdimage(grid=load_grid, shading='+a300+nt0.8', cmap=True, transparency=35)
+        fig.grdimage(grid=load_grid, shading='+a300+nt0.8', cmap=True, transparency=60) #35
 
         fig.coast( water=None, borders="10/10p,black", shorelines="1/0.5p,black")
 
-        fig.plot(x=list(array_lons), y=list(array_lats), size=[400], style="E-", pen="1.5p,black,-")
+        #Plot circle-------------
+        #fig.plot(x=list(array_lons), y=list(array_lats), size=[350], style="E-", pen="1.5p,black,-")
         
         #Plot earthquakes------------------------------------------------------------
 
@@ -168,10 +194,6 @@ def pygmt_array_earthquakes(array_lats, array_lons, array_names, earthquake_lats
         
         fig.show(dpi=720)
 
-
-##########################################################################################################################
-##########################################################################################################################        
-##########################################################################################################################        
 
 
 def transform_degrees_pygmt(degree):
@@ -216,29 +238,7 @@ def pygmt_baz_error(array_lat, array_lon, array_name, earthquake_lats, earthquak
     pos_error = pd.DataFrame(df6[df6['baz_error']>= 0])
     neg_error = pd.DataFrame(df6[df6['baz_error']<= 0])
 
-    # DEFINE CPT BASED ON AEC BASEMAP
-    AEC_BASEMAP_CPT = """
-    # COLOR_MODEL = RGB
-    -12000  76  81  88  -7000  76  81  88
-    -7000  111 117 124  -6000 111 117 124
-    -6000  122 129 136  -5000 122 129 136
-    -5000  131 137 144  -4000 131 137 144
-    -4000  139 146 153  -3000 139 146 157
-    -3000  142 149 157  -2000 142 149 157
-    -2000  154 161 168  -1000 154 161 168
-    -1000  162 168 176   -500 162 168 176
-    -500   165 172 179   -250 165 172 179
-    -250   167 174 182      0 167 174 182
-    0      240 240 240   9000 240 240 240
-    """
-    
-    # Create a temporary file for the CPT
-    with tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix='.cpt') as tmp_cpt:
-        tmp_cpt.write(AEC_BASEMAP_CPT)
-        tmp_cpt_path = tmp_cpt.name  # Save path to use later
-
-
-
+    tmp_cpt_path = basemap_cpt("AEC")
 
     pygmt.config(FORMAT_GEO_MAP="ddd.x") # Highlevel formatting (no ticks, no labels)
 
@@ -253,10 +253,9 @@ def pygmt_baz_error(array_lat, array_lon, array_name, earthquake_lats, earthquak
 
     region = [left-5, right+5, bottom-5, top+5]
 
-    #region=[-170,-140,50,68]
-    #region_rect = str(left-0.5)+"/"+str(bottom-0.5)+"/"+str(right+0.5)+"/"+str(top+0.5)
+    
     region_rect = str(left-0.5)+"/"+str(bottom-0.5)+"/"+str(right+0.5)+"/"+str(top+0.5)+"r"
-    #region_rect = "-162/52/-142/64r"
+    
 
     projection="M0/0/12c"
     amplitude = 0.2 #for plotting earthquakes
@@ -264,7 +263,7 @@ def pygmt_baz_error(array_lat, array_lon, array_name, earthquake_lats, earthquak
     #projection = f'S210/{hemisphere}/8i'
 
     run_topo = True
-    ##---Begin basemap w/ only AK topography---##
+    
 
     if run_topo == True:
     # Load topography
@@ -285,7 +284,7 @@ def pygmt_baz_error(array_lat, array_lon, array_name, earthquake_lats, earthquak
         pygmt.makecpt(cmap=tmp_cpt_path)
     #pygmt.makecpt(cmap=CPT_Option)  #, series=[-1.5, 0.3, 0.01])
    
-        fig.grdimage(grid=load_grid, shading='+a300+nt0.8', cmap=True)
+        fig.grdimage(grid=load_grid, shading='+a300+nt0.8', cmap=True, transparency = 60)
 
         pygmt.makecpt(cmap='polar', series = [-80,80])
         
@@ -355,27 +354,7 @@ def pygmt_slow_error(array_lat, array_lon, array_name, earthquake_lats, earthqua
     amplitude = 0.2 #for plotting earthquakes
 
     # DEFINE CPT BASED ON AEC BASEMAP
-    AEC_BASEMAP_CPT = """
-    # COLOR_MODEL = RGB
-    -12000  76  81  88  -7000  76  81  88
-    -7000  111 117 124  -6000 111 117 124
-    -6000  122 129 136  -5000 122 129 136
-    -5000  131 137 144  -4000 131 137 144
-    -4000  139 146 153  -3000 139 146 157
-    -3000  142 149 157  -2000 142 149 157
-    -2000  154 161 168  -1000 154 161 168
-    -1000  162 168 176   -500 162 168 176
-    -500   165 172 179   -250 165 172 179
-    -250   167 174 182      0 167 174 182
-    0      240 240 240   9000 240 240 240
-    """
-
-    # Create a temporary file for the CPT
-    with tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix='.cpt') as tmp_cpt:
-        tmp_cpt.write(AEC_BASEMAP_CPT)
-        tmp_cpt_path = tmp_cpt.name  # Save path to use later
-
-
+    tmp_cpt_path = basemap_cpt("AEC")
 
 
     pygmt.config(FORMAT_GEO_MAP="ddd.x") # Highlevel formatting (no ticks, no labels)
@@ -422,10 +401,10 @@ def pygmt_slow_error(array_lat, array_lon, array_name, earthquake_lats, earthqua
         pygmt.makecpt(cmap=tmp_cpt_path)
     #pygmt.makecpt(cmap=CPT_Option)  #, series=[-1.5, 0.3, 0.01])
    
-        fig.grdimage(grid=load_grid, shading='+a300+nt0.8', cmap=True)
+        fig.grdimage(grid=load_grid, shading='+a300+nt0.8', cmap=True, transparency = 60)
 
         #pygmt.makecpt(cmap='polar', series = [-50,50])
-        cpt_file = '/Users/cadequigley/Downloads/green-purple.cpt'
+        cpt_file = './green-purple.cpt'
         pygmt.makecpt(cmap=cpt_file, series = [-0.12,0.12])#red2green
         
         fig.plot(x= earthquake_lons, y= earthquake_lats, size=amplitude*(1.8**(earthquake_mags/np.mean(earthquake_mags))),
@@ -590,25 +569,7 @@ def pygmt_single_event(index, array_lats, array_lons, earthquake_lats, earthquak
         color = 'gold1'
 
     # DEFINE CPT BASED ON AEC BASEMAP
-    AEC_BASEMAP_CPT = """
-    # COLOR_MODEL = RGB
-    -12000  76  81  88  -7000  76  81  88
-    -7000  111 117 124  -6000 111 117 124
-    -6000  122 129 136  -5000 122 129 136
-    -5000  131 137 144  -4000 131 137 144
-    -4000  139 146 153  -3000 139 146 157
-    -3000  142 149 157  -2000 142 149 157
-    -2000  154 161 168  -1000 154 161 168
-    -1000  162 168 176   -500 162 168 176
-    -500   165 172 179   -250 165 172 179
-    -250   167 174 182      0 167 174 182
-    0      240 240 240   9000 240 240 240
-    """
-    
-    # Create a temporary file for the CPT
-    with tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix='.cpt') as tmp_cpt:
-        tmp_cpt.write(AEC_BASEMAP_CPT)
-        tmp_cpt_path = tmp_cpt.name  # Save path to use later
+    tmp_cpt_path = basemap_cpt("AEC")
 
     pygmt.config(FORMAT_GEO_MAP="ddd.x") # Highlevel formatting (no ticks, no labels)
 
@@ -653,7 +614,7 @@ def pygmt_single_event(index, array_lats, array_lons, earthquake_lats, earthquak
         pygmt.makecpt(cmap=tmp_cpt_path)
     #pygmt.makecpt(cmap=CPT_Option)  #, series=[-1.5, 0.3, 0.01])
    
-        fig.grdimage(grid=load_grid, shading='+a300+nt0.8', cmap=True)
+        fig.grdimage(grid=load_grid, shading='+a300+nt0.8', cmap=True, transparency = 60)
 
         #pygmt.makecpt(cmap='polar', series = [-50,50])
         
@@ -757,25 +718,7 @@ def pygmt_network_subarrays(array_lats, array_lons, earthquake_lat, earthquake_l
         color = 'gold1'
 
     # DEFINE CPT BASED ON AEC BASEMAP
-    AEC_BASEMAP_CPT = """
-    # COLOR_MODEL = RGB
-    -12000  76  81  88  -7000  76  81  88
-    -7000  111 117 124  -6000 111 117 124
-    -6000  122 129 136  -5000 122 129 136
-    -5000  131 137 144  -4000 131 137 144
-    -4000  139 146 153  -3000 139 146 157
-    -3000  142 149 157  -2000 142 149 157
-    -2000  154 161 168  -1000 154 161 168
-    -1000  162 168 176   -500 162 168 176
-    -500   165 172 179   -250 165 172 179
-    -250   167 174 182      0 167 174 182
-    0      240 240 240   9000 240 240 240
-    """
-    
-    # Create a temporary file for the CPT
-    with tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix='.cpt') as tmp_cpt:
-        tmp_cpt.write(AEC_BASEMAP_CPT)
-        tmp_cpt_path = tmp_cpt.name  # Save path to use later
+    tmp_cpt_path = basemap_cpt("AEC")
 
     pygmt.config(FORMAT_GEO_MAP="ddd.x") # Highlevel formatting (no ticks, no labels)
 
@@ -837,7 +780,7 @@ def pygmt_network_subarrays(array_lats, array_lons, earthquake_lat, earthquake_l
         pygmt.makecpt(cmap=tmp_cpt_path)
     #pygmt.makecpt(cmap=CPT_Option)  #, series=[-1.5, 0.3, 0.01])
    
-        fig.grdimage(grid=load_grid, shading='+a300+nt0.8', cmap=True)
+        fig.grdimage(grid=load_grid, shading='+a300+nt0.8', cmap=True, transparency = 60)
 
         #pygmt.makecpt(cmap='polar', series = [-50,50])
         

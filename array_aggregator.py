@@ -205,6 +205,7 @@ def preprocess_earthquakes(lat_list, lon_list, elev_list, use_full_deployment,
     stations_lists = [stations_lists[i] for i in keep_idx]
     df = df.drop(index=bad_idx)
     df = df.reset_index(drop = True)
+    df.to_csv('/Users/cadequigley/Downloads/Research/unalaska_arrays_paper/all_earthquakes_m3_400km.csv')
 
     print('Station lists for each earthquake created. New earthquake number:', len(df))
     return df, moveout, origin_lat, origin_lon, stations_lists
@@ -460,6 +461,8 @@ if __name__ == "__main__":
     #----------------------------------------------------
     array_lats = [float(origin_lat)]
     array_lons = [float(origin_lon)]
+    #array_lats = [53.6974, 53.779, 53.8566]  
+    #array_lons = [-166.7343, -166.2131,-166.4161]
     array_names = [array_name]
     array_names = []
     earthquake_lats = df['latitude'].to_numpy()

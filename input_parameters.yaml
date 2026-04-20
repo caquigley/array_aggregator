@@ -67,9 +67,9 @@ fk:
 # Plots -----------------------
 plots:
   earthquake_map: true
-  baz_error: true
-  slow_error: true
+  baz_error: false
+  slow_error: false
   baz_error_map: true
-  slow_error_map: true
+  slow_error_map: false
   save_fig: false
   fig_path: './figures/'
