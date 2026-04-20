@@ -279,12 +279,13 @@ def pygmt_baz_error(array_lat, array_lon, array_name, earthquake_lats, earthquak
     #fig.coast(dcw="US.AK+p0.25p")
     
     #Define outline and color pallete of basemap
-        fig.coast( shorelines=True, water='#C6E2EE', borders="1/1p,black") #frame=[fig_title]
+        #fig.coast( shorelines=True, water='#C6E2EE', borders="1/1p,black") #frame=[fig_title]
         dgrid = pygmt.grdgradient(grid=load_grid, radiance=[270,30])
         pygmt.makecpt(cmap=tmp_cpt_path)
     #pygmt.makecpt(cmap=CPT_Option)  #, series=[-1.5, 0.3, 0.01])
    
         fig.grdimage(grid=load_grid, shading='+a300+nt0.8', cmap=True, transparency = 60)
+        fig.coast( water=None, borders="10/10p,black", shorelines="1/0.5p,black")
 
         pygmt.makecpt(cmap='polar', series = [-80,80])
         
@@ -396,12 +397,14 @@ def pygmt_slow_error(array_lat, array_lon, array_name, earthquake_lats, earthqua
     #fig.coast(dcw="US.AK+p0.25p")
     
     #Define outline and color pallete of basemap
-        fig.coast( shorelines=True, water='#C6E2EE', borders="1/1p,black") #frame=[fig_title]
+        #fig.coast( shorelines=True, water='#C6E2EE', borders="1/1p,black") #frame=[fig_title]
         dgrid = pygmt.grdgradient(grid=load_grid, radiance=[270,30])
         pygmt.makecpt(cmap=tmp_cpt_path)
     #pygmt.makecpt(cmap=CPT_Option)  #, series=[-1.5, 0.3, 0.01])
    
         fig.grdimage(grid=load_grid, shading='+a300+nt0.8', cmap=True, transparency = 60)
+        
+        fig.coast( water=None, borders="10/10p,black", shorelines="1/0.5p,black")
 
         #pygmt.makecpt(cmap='polar', series = [-50,50])
         cpt_file = './green-purple.cpt'
