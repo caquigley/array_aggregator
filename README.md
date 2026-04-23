@@ -30,7 +30,7 @@ Create a fork of this repository to your github. Then, create a local repository
 git clone <github_link_to_repo>
 ```
 
-A conda environment with the needed dependencies are provided in environment.yaml. This can be created with the following command in your local repository:
+A conda environment with the needed dependencies are provided in environment.yml. This can be created with the following command in your local repository:
 
 ```python
 conda env create -f environment.yml
@@ -40,9 +40,10 @@ This will create a environment called arrayseis with the following dependencies:
 - python3
 - obspy
 - pygmt
+- pyproj
 - numpy (2.14)
 - lts_array
-    - numba
+- numba
 ## Usage
 
 Once your python environment is installed, this can be activated as:
@@ -51,7 +52,7 @@ Once your python environment is installed, this can be activated as:
 conda activate arrayseis
 ```
 
-The input parameters for the code can be found in the input_parameters.yaml file. The possible inputs are found in the documentation
+The input parameters for the code can be found in the input_parameters.yaml file. See the github wiki for different options for the paramters in the input_parameters.yaml. 
 
 In your local repository, the main code can be run as:
 
@@ -59,6 +60,19 @@ In your local repository, the main code can be run as:
 python array_aggregator.py input_parameters.yaml
 ```
 
+
+## Repository Contents
+
+| File | Description |
+|------|-------------|
+| `array_aggregator.py` | Main script for comparing USGS catalog eathquake locations to array processed locations. Includes some common plotting options. |
+| `input_parameters.yaml` | Input parameters for the array_aggregator script. Explanation of possible inputs are in the github wiki. |
+| `array_functions.py` | General functions used in the main script for array processing. |
+| `environment.yml` | Conda environment file for creating a local environment. |
+| `array_figures.py` | Aggregate of different plotting functions that can be called in the main array_aggregator.py script. |
+| `array_maps_pygmt.py` | Different map plotting options using pygmt library. |
+| `POM_earthquakes_mseeds` | Example dataset of earthquakes (.mseed) from the Aleutian Array of Arrays project. Dataset is from 2015-2016. |
+| `green-purple.cpt` | Cpt file used in one of the plotting scripts for array derived slowness. |
 
 ## Example
 An example from an array in the Aleutian Islands is provided in input_parameters.yaml.
@@ -71,3 +85,7 @@ For project task 2, I will be doing a parameter input system. In addition, I wil
 
 ## For class reviewers
 The relevant python file for class reviews is array_aggregator.py. The other main file is array_functions.py, but I'll leave this up to your discretion.
+
+## Acknowledgments
+
+This toolkit relies on the array processing toolkit [LTS Array](https://github.com/uafgeotools/lts_array/tree/master) (Bishop et al., 2020). This toolkit also heavily relies on the [Obspy](https://github.com/obspy/obspy) package and the FK array processing algorithm within (Beyreuther et al., 2010).
