@@ -1,4 +1,4 @@
-name: arraytest
+name: arrayseis
 channels:
     - conda-forge
     - defaults
@@ -9,6 +9,7 @@ dependencies:
     - obspy
     - pygmt
     - numba
+    - pyproj
     - pip:
-      - https://github.com/caquigley/lts_array
+      - git+https://github.com/caquigley/lts_array.git
       - pyyaml
