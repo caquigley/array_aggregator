@@ -4,7 +4,7 @@ network:
   sta: "POM*"
   loc: "*"
   chan: "SHZ"
-  client: "IRIS"
+  client: "EARTHSCOPE"
 
 stations:
   min_stations: 10
@@ -18,14 +18,14 @@ stations:
 
 # MSEED parameters------------------------
 mseed:
-  save_mseed: true
+  save_mseed: false
   mseed_path: "./POM_earthquakes_mseeds/"
   mseed_length: 120
 
 # Earthquake search parameters------------
 earthquakes:
   min_mag: 3.0
-  max_rad: 400
+  max_rad: 600
   velocity_model: "ak135"
   starttime: "2015-06-23"
   endtime: "2016-04-30"
@@ -67,9 +67,9 @@ fk:
 # Plots -----------------------
 plots:
   earthquake_map: true
-  baz_error: false
-  slow_error: false
+  baz_error: true
+  slow_error: true
   baz_error_map: true
-  slow_error_map: false
+  slow_error_map: true
   save_fig: false
   fig_path: './figures/'
