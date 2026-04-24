@@ -55,7 +55,7 @@ Once your python environment is installed, this can be activated as:
 conda activate arrayseis
 ```
 
-The input parameters for the code can be found in the input_parameters.yaml file. See the github wiki for different options for the paramters in the input_parameters.yaml. 
+The input parameters for the code can be found in the input_parameters.yaml file. See the [Input Parameters](https://github.com/caquigley/array_aggregator/wiki/Input-parameters) Github Wiki Page for documentation on different inputs.
 
 In your local repository, the main code can be run as:
 
@@ -80,13 +80,13 @@ python array_aggregator.py input_parameters.yaml
 
 
 ## Example
-An example from an array in the Aleutian Islands is provided in input_parameters.yaml.
+An example from an array in the Aleutian Islands is provided in input_parameters.yaml. Please see the [Example Dataset](https://github.com/caquigley/array_aggregator/wiki/Example-Dataset) Github Wiki page to learn more about the dataset and expected outputs.
 
 ## Project Task 1
 For project task 1, I will be implementing parallel/concurrency into my code.
 
 ## Project Task 2
-For project task 2, I will be doing a parameter input system. In addition, I will also either incorporate Chinook Compatability or Advanced Documentation.
+For project task 2, I will be doing a parameter input system. In addition, I will also doing Advanced Documentation (Github Wiki).
 
 ## For class reviewers
 The relevant python file for class reviews is array_aggregator.py. The other main file is array_functions.py, but I'll leave this up to your discretion.
