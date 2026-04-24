@@ -69,14 +69,14 @@ python array_aggregator.py input_parameters.yaml
 | File | Description |
 |------|-------------|
 | `array_aggregator.py` | Main script for comparing USGS catalog eathquake locations to array processed locations. Includes some common plotting options. |
-| `input_parameters.yaml` | Input parameters for the array_aggregator script. Explanation of possible inputs are in the github wiki. |
+| `input_parameters.yaml` | Input parameters for the array_aggregator script. Explanation of possible inputs are in the [Github Wiki](https://github.com/caquigley/array_aggregator/wiki/Input-parameters). |
 | `array_functions.py` | General functions used in the main script for array processing. |
 | `environment.yml` | Conda environment file for creating a local environment. |
 | `array_figures.py` | Aggregate of different plotting functions that can be called in the main array_aggregator.py script. |
 | `array_maps_pygmt.py` | Different map plotting options using pygmt library. |
 | `POM_earthquakes_mseeds` | Example dataset of earthquakes (.mseed) from the Aleutian Array of Arrays project. Dataset is from 2015-2016. |
 | `green-purple.cpt` | Cpt file used in one of the plotting scripts for array derived slowness. |
-| `array_aggregator_workflow.png` | Image showing the general workflow of array_aggregator. |
+| `./figures` | Folder containing example figures of expected output from provided input_parameters.yaml. |
 
 
 ## Example
