@@ -20,7 +20,7 @@ This code does the following in the specified order:
 - map of slowness error
 
 The following graphic shows the general workflow of the code.
-![Example Image](array_aggregator_workflow.png)
+![Example Image](./figures/array_aggregator_workflow.png)
 
 ## Why
 Small aperture arrays have grown in interest in the earthquake monitoring and Earthquake Early Warning communities in recent years. This is largely due to an arrays ability to provide accurate backazimuth and slowness estimates of incoming seismic energy. This code provides the ability to assess how accurate these estimates are, check a number of input parameters, and identify systematic patterns in error and provide possible correction criteria.
