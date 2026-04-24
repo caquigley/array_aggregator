@@ -76,6 +76,8 @@ python array_aggregator.py input_parameters.yaml
 | `array_maps_pygmt.py` | Different map plotting options using pygmt library. |
 | `POM_earthquakes_mseeds` | Example dataset of earthquakes (.mseed) from the Aleutian Array of Arrays project. Dataset is from 2015-2016. |
 | `green-purple.cpt` | Cpt file used in one of the plotting scripts for array derived slowness. |
+| `array_aggregator_workflow.png` | Image showing the general workflow of array_aggregator. |
+
 
 ## Example
 An example from an array in the Aleutian Islands is provided in input_parameters.yaml.
