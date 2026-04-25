@@ -1,5 +1,5 @@
 # array_aggregator
-Code for assessing array accuracy on a set of earthquakes. Final project for GEOS694 Computational Geosciences (Bryant Chow).
+Code for assessing array accuracy on a set of earthquakes. Final project for GEOS694 Computational Geosciences (Instructor: Dr. Bryant Chow).
 
 ## Version: 1.0.0
 
@@ -74,7 +74,7 @@ python array_aggregator.py input_parameters.yaml
 | `environment.yml` | Conda environment file for creating a local environment. |
 | `array_figures.py` | Aggregate of different plotting functions that can be called in the main array_aggregator.py script. |
 | `array_maps_pygmt.py` | Different map plotting options using pygmt library. |
-| `POM_earthquakes_mseeds` | Example dataset of earthquakes (.mseed) from the Aleutian Array of Arrays project. Dataset is from 2015-2016. |
+| `POM_earthquakes_mseeds` | Example dataset of earthquakes (.mseed) from the Aleutian Array of Arrays project. Dataset is from 2015-2016. See [Github Wiki](https://github.com/caquigley/array_aggregator/wiki/Example-Dataset) for more information. |
 | `green-purple.cpt` | Cpt file used in one of the plotting scripts for array derived slowness. |
 | `./figures` | Folder containing example figures of expected output from provided input_parameters.yaml. |
 
