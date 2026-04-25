@@ -164,14 +164,27 @@ def preprocess_earthquakes(lat_list, lon_list, elev_list, use_full_deployment,
     operating.
 
     Inputs:
-        lat_list:
-        lon_list:
-        elev_list:
-        use_full_deployment:
-
-
-    Outputs:
-     - df
+        lat_list: list of station latitudes
+        lon_list: list of station longitudes
+        elev_list: list of station elevations
+        use_full_deployment: whether or not to use full deployment time
+        start_d1_list: start times from station list
+        end_d1_list: end times from station list
+        starttime: start time for pulling earthquakes
+        endtime: end time for pulling earthquakes
+        max_rad: maximum radius for pulling earthquake data
+        min_mag: minimum magnitude for pulling earthquake data
+        array_name: name of array for saving data later
+        velocity_model: name of velocity model for TauP calculations
+        min_stations: minimum number of stations to run array analysis
+    Returns:
+        df: dataframe of earthquakes, including: origin time, magnitude,
+            distance, slowness, backazimuth, event_id
+        moveout: how fast the seismic wave is expected to move across the
+            array
+        origin_lat: latitude of center of array
+        origin_lon: longitude of center of array
+        stations_lists: list of stations available for each event.
 
     '''
     #Get center of array -----------------
@@ -226,6 +239,14 @@ def process_event(event, event_ids, mag, eq_time, client_str, stations_lists,
                   sll_x, slm_x, sll_y, slm_y, sl_s, semb_thres,vel_thres, 
                   timestamp, prewhiten, timing, velocity_model, processing, 
                   origin_lat, origin_lon):
+    
+    '''
+    Function for pulling data, identifying STA/LTA triggers, and conducting
+    array analysis for each event from earthquake list. This functions acts
+    as a wrapper so that each event can be split onto different cores using
+    concurrent.futures.
+
+    '''
 
     try:
         #Pull seismic data------------------------------
@@ -312,6 +333,7 @@ def process_event(event, event_ids, mag, eq_time, client_str, stations_lists,
 
         return array_data
 
+    #Handles data that has errors raised so code continues to run.-----
     except ValueError as e:
         print(f"Skipping event {event_ids[event]}: {e}")
         return None
