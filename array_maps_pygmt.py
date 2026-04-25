@@ -62,29 +62,6 @@ def basemap_cpt(cpt_type):
 
 def pygmt_array_earthquakes(array_lats, array_lons, array_names, earthquake_lats, earthquake_lons, earthquake_mag, earthquake_depth, save=False, path = None, cpt_type ='AEC'):
 
-    '''
-    
-    # DEFINE CPT BASED ON AEC BASEMAP
-    AEC_BASEMAP_CPT = """
-    # COLOR_MODEL = RGB
-    -12000  76  81  88  -7000  76  81  88
-    -7000  111 117 124  -6000 111 117 124
-    -6000  122 129 136  -5000 122 129 136
-    -5000  131 137 144  -4000 131 137 144
-    -4000  139 146 153  -3000 139 146 157
-    -3000  142 149 157  -2000 142 149 157
-    -2000  154 161 168  -1000 154 161 168
-    -1000  162 168 176   -500 162 168 176
-    -500   165 172 179   -250 165 172 179
-    -250   167 174 182      0 167 174 182
-    0      240 240 240   9000 240 240 240
-    """
-    
-    # Create a temporary file for the CPT
-    with tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix='.cpt') as tmp_cpt:
-        tmp_cpt.write(AEC_BASEMAP_CPT)
-        tmp_cpt_path = tmp_cpt.name  # Save path to use later
-    '''
 
     tmp_cpt_path = basemap_cpt("AEC")
     amplitude = 0.05 #0.2
@@ -190,7 +167,7 @@ def pygmt_array_earthquakes(array_lats, array_lons, array_names, earthquake_lats
     
     
         if save == True:
-            fig.savefig(path, transparent=True, dpi=720)
+            fig.savefig(path, transparent=False, dpi=720)
         
         fig.show(dpi=720)
 
@@ -336,7 +313,7 @@ def pygmt_baz_error(array_lat, array_lon, array_name, earthquake_lats, earthquak
     
         fig.colorbar(frame="xaf+lBackazimuth error (degrees)")
         if save == True:
-            fig.savefig(path, transparent=True, dpi=720)
+            fig.savefig(path, transparent=False, dpi=720)
         #fig.savefig('/Users/cadequigley/Downloads/Research/hom_kod_earthquakes.png', transparent=True, dpi=720)
         fig.show(dpi=720)
 
@@ -403,7 +380,7 @@ def pygmt_slow_error(array_lat, array_lon, array_name, earthquake_lats, earthqua
     #pygmt.makecpt(cmap=CPT_Option)  #, series=[-1.5, 0.3, 0.01])
    
         fig.grdimage(grid=load_grid, shading='+a300+nt0.8', cmap=True, transparency = 60)
-        
+
         fig.coast( water=None, borders="10/10p,black", shorelines="1/0.5p,black")
 
         #pygmt.makecpt(cmap='polar', series = [-50,50])
@@ -457,7 +434,7 @@ def pygmt_slow_error(array_lat, array_lon, array_name, earthquake_lats, earthqua
         fig.colorbar(frame="xaf+lSlowness error (s/km)")
         
         if save == True:
-            fig.savefig(path, transparent=True, dpi=720)
+            fig.savefig(path, transparent=False, dpi=720)
             
         fig.show(dpi=720)
 
