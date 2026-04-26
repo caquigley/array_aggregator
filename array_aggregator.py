@@ -32,8 +32,12 @@ Parameters:
     Wiki: https://github.com/caquigley/array_aggregator/wiki/Input-parameters
 
 Returns: 
-    df: dataframe containing earthquake information and array output parameters
-    stations: dataframe with information about stations used
+    df: dataframe containing earthquake information and array output parameters.
+        See Github 
+        wiki: https://github.com/caquigley/array_aggregator/wiki/Outputs
+
+    stations: dataframe with information about stations used (see Github
+        Wiki: https://github.com/caquigley/array_aggregator/wiki/Outputs)
     plots: 
         - map of earthquakes
         - baz error
@@ -483,13 +487,13 @@ if __name__ == "__main__":
 
     #Save to csv-----------------------------------------------------
     if save_events == True:
-        array_data_comb.to_csv(array_name+'_'+max_rad+'km_m'+str(int(min_mag))
+        array_data_comb.to_csv(array_name+'_'+max_rad+'km_m'+str(int(float(min_mag)))
                                +'_'+processing
                                +'_window_freq_test.csv')
 
     if save_stations == True:
         station_info.to_csv(array_name+'_'+max_rad+'km_m'
-                            +str(int(min_mag))+'_'+processing+'_stations.csv')
+                            +str(int(float(min_mag)))+'_'+processing+'_stations.csv')
 
     
     ###############################
