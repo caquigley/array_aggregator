@@ -45,8 +45,10 @@ def least_trimmed_squares(processing, st, sta_lats, sta_lons, WINDOW_LENGTH,
         trigger_time: trigger time in UTC (string)
         trigger_type: 
             'STA/LTA': single STA/LTA trigger
-            'Multiple triggers': multiple triggers, chosen based on multiple triggers input
-            'Taup': no STA/LTA trigger, using Taup time and larger window to search 
+            'Multiple triggers': multiple triggers, chosen based on multiple
+                triggers input
+            'Taup': no STA/LTA trigger, using Taup time and larger window to
+                search 
         peak: STA/LTA ratio of nearest peak to trigger
         length: length of STA/LTA trigger duration
         origin_lat: latitude of array center
@@ -115,8 +117,8 @@ def least_trimmed_squares(processing, st, sta_lats, sta_lons, WINDOW_LENGTH,
 
 def fk_obspy(st1, stations, sta_lats, sta_lons, sta_elev, START_new, END_new,
              WINDOW_LENGTH, WINDOW_OVERLAP, FREQ_MIN, FREQ_MAX,
-             sll_x, slm_x, sll_y, slm_y, sl_s, semb_thres, vel_thres, timestamp, prewhiten,
-            eq_baz, eq_slow):
+             sll_x, slm_x, sll_y, slm_y, sl_s, semb_thres, vel_thres, timestamp,
+             prewhiten, eq_baz, eq_slow):
     print('Starting FK')
     #Add necessary data to streams----------------
     for l in range(len(stations)):  # Uses all stations in pd dataframe stations
@@ -135,16 +137,17 @@ def fk_obspy(st1, stations, sta_lats, sta_lons, sta_elev, START_new, END_new,
             frqlow=FREQ_MIN, frqhigh=FREQ_MAX, prewhiten=prewhiten,
             # restrict output
             semb_thres=semb_thres, vel_thres=vel_thres, timestamp=timestamp,
-            #stime=START+1, etime=END-1 #had to add and subtract 2 to avoid timing errors
+            # start and end of analysis
             stime=START_new, etime = END_new
                 )
     out = array_processing(st1, **kwargs)
     
-    #OUTPUT FROM FK PROCESSING-----------------------------------------------------
-    array_out = pd.DataFrame(out, columns = ['time','relpow','abspow','baz_obspy','array_slow'])
+    #OUTPUT FROM FK PROCESSING-------------------------------------------------
+    array_out = pd.DataFrame(out, columns = ['time','relpow','abspow',
+                                             'baz_obspy','array_slow'])
         
 
-    #Convert times and baz to same scale as lts (UTC time, centered on window)------------
+    #Convert times and baz to same scale as lts (UTC time, centered on window)-
     t = array_out['time'].to_numpy()
     baz_obspy = array_out['baz_obspy'].to_numpy()
         
@@ -170,7 +173,7 @@ def fk_obspy(st1, stations, sta_lats, sta_lons, sta_elev, START_new, END_new,
     #Calculate baz/slow error---------------------------------------
     fk_baz_error = baz_error(eq_baz, fk_bazs)
 
-    trace_vel_error = (1/eq_slow)- 1/array_out['array_slow'].to_numpy() #real - array
+    trace_vel_error = (1/eq_slow)- 1/array_out['array_slow'].to_numpy() 
 
     slowness_error = (eq_slow) - array_out['array_slow'].to_numpy()
 
@@ -182,14 +185,14 @@ def fk_obspy(st1, stations, sta_lats, sta_lons, sta_elev, START_new, END_new,
     array_out['slow_error'] = slowness_error
     array_out['array_vel'] = 1/array_out['array_slow'].to_numpy()
 
-    #Pull out greatest power (should be only one value if using triggers)------------
+    #Pull out greatest power (should be only one value if using triggers)-----
     idx = np.argmax(array_out['relpow'].to_numpy())
 
     #Save data--------------------------------------
     array_data = array_out.loc[[idx]]
-    array_data['conf_int_vel'] = 0 #values not returned for FK, keeping for consistency with other codes
-    array_data['conf_int_baz'] = 0 #values not returned for FK, keeping for consistency with other codes
-    array_data['mdccm'] = 0 #values not returned for FK, keeping for consistency with other codes
+    array_data['conf_int_vel'] = 0 #values not returned for FK, 
+    array_data['conf_int_baz'] = 0 #values not returned for FK
+    array_data['mdccm'] = 0 #values not returned for FK
     
 
 
@@ -499,9 +502,11 @@ def process_hm_kd_data(net, sta, loc, chan,  starttime, endtime, array_name, arr
 
 def grab_preprocess(stations, station_info, inv, 
                     net, loc, chan, min_stations, 
-                    START, END, client, array, event_id, path, save_mseed = False):
+                    START, END, client, array, event_id, path, 
+                    save_mseed = False):
     
-    station_sub = station_info[station_info['station'].isin(stations)] #pull out specific station info
+    #Pull out specific station info
+    station_sub = station_info[station_info['station'].isin(stations)] 
         
     sta_lats = station_sub['lat'].to_numpy()
     sta_lons = station_sub['lon'].to_numpy()
@@ -514,7 +519,7 @@ def grab_preprocess(stations, station_info, inv,
         st = read(path+event_id+'.mseed')
         st = st.slice(START, END)
         stations = set(tr.stats.station for tr in st)
-        station_sub = station_info[station_info['station'].isin(stations)] #pull out specific station info
+        station_sub = station_info[station_info['station'].isin(stations)]
         
         valid_stations = set(station_sub['station'])
 
@@ -584,7 +589,8 @@ def moveout_time(output):
     interstation distacne and velocity, including some wiggle room
     
     Parameters:
-        output: output from get_geometry function. Contains interstation distances
+        output: output from get_geometry function. Contains interstation
+          distances
 
     Returns: 
         moveout: expected moveout time in seconds (float)
@@ -606,7 +612,8 @@ def array_time_window(use_full_deployment, start_d1_list, end_d1_list,
     Defines what dates to look for earthquakes based on active stations
     
     Parameters:
-        use_full_deployment: whether to use full time window deployment was out (True or False)
+        use_full_deployment: whether to use full time window deployment was
+            out (True or False)
         start_d1_list: list of start times for each station
         end_d1_list: list of end times for each station
         starttime: specified starttime, will use if use_full_deployment = True
@@ -653,13 +660,15 @@ def rotate_channel(st, inv, channel): ###NEED TO FINISH-------------
 def calculate_slowness(distance_km, depth, velocity_model):
 
     """
-    Calculates the slowness of an event based on known information about hypocenter. This is 
-    a 1D calculation using the Taup calculator (Crotwell et al.)
+    Calculates the slowness of an event based on known information about
+    hypocenter. This is a 1D calculation using the Taup calculator 
+    (Crotwell et al.)
     
     Parameters:
         distance_km: epicentral distance to event in km
         depth: depth of event in km
-        velocity_model: velocity model to use for slowness calculation ('iasp91', 'ak135', 'pavdut', 'japan_1d', '')
+        velocity_model: velocity model to use for slowness calculation
+          ('iasp91', 'ak135', 'pavdut', 'japan_1d', '')
         
     Returns:
         slowness: expected slowness at surface (s/km)
@@ -778,7 +787,8 @@ def data_from_inventory(inv, remove_stations, keep_stations):
 
         
 
-    return lat_list, lon_list, elev_list, station_list, start_list, end_list, num_channels_list
+    return (lat_list, lon_list, elev_list, station_list, start_list, end_list,
+             num_channels_list)
 
 
 def check_num_stations(min_stations, station_list):
@@ -803,6 +813,7 @@ def get_geometry(lat_list, lon_list, elev_list, return_center = False):
 
     """
     Gets the geometry of the array in terms of meters from a center point.
+    This is slightly modified from obpsy.geotools.get_geometry
     
     Parameters:
         lat_list: list of station latitudes
@@ -861,7 +872,8 @@ def utc2datetime(utctime):
         
         
     '''
-    return dt.datetime(int(utctime[0:4]),int(utctime[5:7]), int(utctime[8:10]), int(utctime[11:13]),int(utctime[14:16]),int(utctime[17:19]))
+    return (dt.datetime(int(utctime[0:4]),int(utctime[5:7]), int(utctime[8:10]),
+                int(utctime[11:13]),int(utctime[14:16]),int(utctime[17:19])))
     
 
 
@@ -886,12 +898,14 @@ def baz_error(baz_real, baz_calculated):
 ############################################################
 #### FUNCTIONS FOR PULLING EARTHQUAKES ###########################
 ############################################################
-def pull_earthquakes(lat, lon, max_rad, start, end, min_mag, array_name, velocity_model):
+def pull_earthquakes(lat, lon, max_rad, start, end, min_mag, array_name,
+                    velocity_model):
 
     """
     Pulls in earthquakes from a region based on lat, lon, timing, and magnitude.
-    It also returns other values of interest about the event for array processing,
-    such as backazimuth, slowness, and epicentral distance to the event.
+    It also returns other values of interest about the event for array 
+    processing, such as backazimuth, slowness, and epicentral distance to the
+    event.
     
     Parameters:
         lat: latitude of array/station (str)
@@ -963,7 +977,8 @@ def pull_earthquakes(lat, lon, max_rad, start, end, min_mag, array_name, velocit
         name= name[8:]
 
         #Calculate distance, backazimuth
-        dist, baz, az = gps2dist_azimuth(float(lat), float(lon), latitude, longitude)
+        dist, baz, az = gps2dist_azimuth(float(lat), float(lon), 
+                                         latitude, longitude)
         dist = dist/1000 #converts m to km
 
         if depth < 0:
@@ -973,7 +988,9 @@ def pull_earthquakes(lat, lon, max_rad, start, end, min_mag, array_name, velocit
             p = 0
         else:
             #Calculate slowness, trace velocity, incident angle, and arrival time
-            slow, t_vel, incident, p = calculate_slowness(dist, depth, velocity_model)
+            slow, t_vel, incident, p = calculate_slowness(dist, 
+                                                          depth,
+                                                          velocity_model)
         
         # Append data to lists
         depths.append(depth)
@@ -1012,7 +1029,8 @@ def pull_earthquakes(lat, lon, max_rad, start, end, min_mag, array_name, velocit
     df = pd.DataFrame(data)
     return df
 
-def stations_available_generator(earthquake_time_list, station_d1_list, start_d1_list, end_d1_list):
+def stations_available_generator(earthquake_time_list, station_d1_list,
+                                start_d1_list, end_d1_list):
     '''
     Finds which stations are available for each earthquake.
     
@@ -1032,7 +1050,8 @@ def stations_available_generator(earthquake_time_list, station_d1_list, start_d1
 
     def is_between(check, start, end): 
         """
-        Checks if a time is between two other times. Useful for determining what stations to use.
+        Checks if a time is between two other times. Useful for determining what
+        stations to use.
         
         Parameters:
             check: time to test
@@ -1091,7 +1110,8 @@ def trigger_list(tr, short_window, long_window, on_threshold, off_theshold):
     sr = tr.stats.sampling_rate
     #cft = classic_sta_lta(tr.data, int(2.5 * sr), int(30. * sr))
     #on_of = trigger_onset(cft, 2.5, 1.0)
-    cft = classic_sta_lta(tr.data, int(short_window * sr), int(long_window * sr))
+    cft = classic_sta_lta(tr.data, int(short_window * sr),
+                          int(long_window * sr))
     on_of = trigger_onset(cft, on_threshold, off_theshold)
 
     trigger_times = []
@@ -1211,7 +1231,8 @@ def triggers(st, short_window, long_window, on_threshold, off_theshold,
         min_triggers: minimum picks to associate into a trigger (int)
         ptolerance: seconds around p-pick to allow association (float)
         START: start time of stream (UTCDateTime)
-        window_start: where in time (seconds) to start analysis relative to p-pick (float)
+        window_start: where in time (seconds) to start analysis relative to 
+            p-pick (float)
         WINDOW_LENGTH: window length of array analysis window (seconds)
         multiple_triggers: how to handle multiple triggers ('peak' or 'closest')
 
@@ -1222,8 +1243,10 @@ def triggers(st, short_window, long_window, on_threshold, off_theshold,
         length: length of STA/LTA trigger duration
         trigger_type: 
             'STA/LTA': single STA/LTA trigger
-            'Multiple triggers': multiple triggers, chosen based on multiple triggers input
-            'Taup': no STA/LTA trigger, using Taup time and larger window to search
+            'Multiple triggers': multiple triggers, chosen based on multiple
+                 triggers input
+            'Taup': no STA/LTA trigger, using Taup time and larger window 
+                to search
         trigger_time: trigger time (str)
         START_new: start time of new stream
         END_new: end time of new stream
@@ -1324,7 +1347,8 @@ def triggers(st, short_window, long_window, on_threshold, off_theshold,
 
     trigger_time = str(START+trigger)
 
-    return st, trigger, peak, length, trigger_type, trigger_time, START_new, END_new
+    return (st, trigger, peak, length, trigger_type, trigger_time, 
+            START_new, END_new)
 
 
 ############################################################
@@ -1360,12 +1384,14 @@ def plane_normal(dip, strike):
 
 def spherical_to_xyz(azimuth, takeoff):
     """
-    Converts azimuth (0-360°, clockwise from North) and takeoff angle (0-90°, from vertical)
-    to a unit 3D direction vector [x, y, z].
+    Converts azimuth (0-360°, clockwise from North) and takeoff angle (0-90°,
+    from vertical) to a unit 3D direction vector [x, y, z].
 
     Parameters:
-        azimuth_deg: float — azimuth angle in degrees, clockwise from North (Y+ axis)
-        takeoff_deg: float — takeoff angle in degrees, 0° = vertical up, 90° = horizontal
+        azimuth_deg: float — azimuth angle in degrees, clockwise from North
+            (Y+ axis)
+        takeoff_deg: float — takeoff angle in degrees, 0° = vertical up, 
+            90° = horizontal
 
     Returns:
         np.array([x, y, z]) — unit direction vector
@@ -1419,7 +1445,8 @@ def snell_3d(incident, normal, v1, v2):
 
 def deflection_xy(incident, refracted): #analogous with baz error
     """
-    Calculates the angle between the incident wave and refracted wave in the x-y plane
+    Calculates the angle between the incident wave and refracted wave in the
+    x-y plane
     Args:
         incident: incident vector (3 component np.array)
         refracted: refracted vector (3 component np.array)
@@ -1444,7 +1471,8 @@ def deflection_xy(incident, refracted): #analogous with baz error
 def deflection_yz(incident, refracted):
     """
     Args:
-    Calculates the angle between the incident wave and refracted wave in the y-z plane
+    Calculates the angle between the incident wave and refracted wave in the
+    y-z plane
     
         incident: incident vector (3 component np.array)
         refracted: refracted vector (3 component np.array)
@@ -1488,11 +1516,14 @@ def horizontal_slowness(v, velocity): #v is vector, velocity is p-wave velocity 
     return np.sin(theta) / velocity
 
 
-def calculate_deflection(strike, dip, oceanic_vel, continental_vel, distance_list, depth_list, azimuth_list, baz_list, event_id_list):
+def calculate_deflection(strike, dip, oceanic_vel, continental_vel, 
+                         distance_list, depth_list, azimuth_list, baz_list,
+                         event_id_list):
 
     """
     Args:
-    Calculates forward model for deflection from snell 3D functions given an orientation of a dipping plane. 
+    Calculates forward model for deflection from snell 3D functions given an
+      orientation of a dipping plane. 
 
     strike: strike of plane (degrees from north)
     dip: dip of plane (degrees down from horizontal)
@@ -1593,11 +1624,13 @@ def cos_model(Z_deg, a, b, phi_deg):
 #### FUNCTIONS FOR 3D SNELLS INVERSION ###########################
 ############################################################
 
-def combined_residuals(initial_guess, baz, takeoff, baz_error, slow_error, w_baz, w_p):
+def combined_residuals(initial_guess, baz, takeoff, baz_error, slow_error, 
+                       w_baz, w_p):
     
     """
     Args:
-    Calculates residuals between model and observed for different strike/dip/continental_vel/oceanic vel combinations
+    Calculates residuals between model and observed for different 
+    strike/dip/continental_vel/oceanic vel combinations
     
         p: list of guess values [strike, dip, v_oceanic, v_continental]; list
         baz: source baz from USGS catalog (degrees from north); numpy.array
@@ -1640,7 +1673,8 @@ def combined_residuals(initial_guess, baz, takeoff, baz_error, slow_error, w_baz
         
         return np.hstack([w_baz * baz_res, w_p * p_res])
 
-def slab_inversion(initial_guess, bounds, source_baz, takeoff, baz_error, slow_error, weight_baz, weight_slow):
+def slab_inversion(initial_guess, bounds, source_baz, takeoff, baz_error, 
+                   slow_error, weight_baz, weight_slow):
     #####INVERSION######################################
 
     #Initial guess---------------------
