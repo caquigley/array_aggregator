@@ -1220,7 +1220,8 @@ def triggers(st, short_window, long_window, on_threshold, off_theshold,
              moveout, min_triggers, ptolerance,
              START, window_start, WINDOW_LENGTH, FREQ_MIN, FREQ_MAX, 
              trig_freq_min, trig_freq_max,
-            multiple_triggers, mseed_length, no_triggers = None):
+            multiple_triggers, mseed_length, 
+            timing = 'trigger', no_triggers = None):
     '''
     Combines the different trigger functions (trigger_lists, 
     triggers_associator) into a single function.
@@ -1287,22 +1288,31 @@ def triggers(st, short_window, long_window, on_threshold, off_theshold,
     peaks_filtered = peaks[mask]
     lengths_filtered = lengths[mask]
             
+    #-------NO TRIGGERS-------------------
     if len(trigger_filtered) == 0: #no triggers around p-pick
         trigger = mseed_length/2 
         trigger_type = 'Taup'
         peak = 0
         length = 0
         #Trim stream to allow for search for cross correlation
-        if no_triggers == 'max mdccm':
+        if timing == 'trigger':
+            if no_triggers == 'max mdccm':
+                print('Pulling max mdccm')
+                START_new = START + trigger + window_start- 0.001 - ptolerance
+                END_new = START_new + 2*ptolerance
+                st = st.slice(START_new, END_new)
+            elif no_triggers == 'taup':
+                START_new = START + trigger + window_start- 0.001
+                END_new = START_new + WINDOW_LENGTH
+                st = st.slice(START_new, END_new)
+        elif timing == 'power':
             print('Pulling max mdccm')
             START_new = START + trigger + window_start- 0.001 - ptolerance
             END_new = START_new + 2*ptolerance
             st = st.slice(START_new, END_new)
-        elif no_triggers == 'taup':
-            START_new = START + trigger + window_start- 0.001
-            END_new = START_new + WINDOW_LENGTH
-            st = st.slice(START_new, END_new)
 
+
+    #-------MULTIPLE TRIGGERS-------------------
     elif len(trigger_filtered) >1: #multiple triggers around p-pick
         
         trigger_type = 'Multiple triggers'
@@ -1326,22 +1336,34 @@ def triggers(st, short_window, long_window, on_threshold, off_theshold,
             peak = peaks_filtered[idx]
             length = lengths_filtered[idx]
 
-                
-                
-        #Trim stream to window of interest-------------
-        START_new = START + trigger + window_start- 0.001
-        END_new = START_new + WINDOW_LENGTH
-        st = st.slice(START_new, END_new)
-
-    else:
+        #Handle for whether single point analysis is from trigger or power       
+        if timing == 'trigger': #analysis based on timing
+            #Trim stream to window of interest-------------
+            START_new = START + trigger + window_start- 0.001
+            END_new = START_new + WINDOW_LENGTH
+            st = st.slice(START_new, END_new)
+        elif timing == 'power': #Find max power in a tolerance window
+            #Trim stream to window of interest-------------
+            START_new = START + trigger + window_start- 0.001 - ptolerance
+            END_new = START_new + 2*ptolerance
+            st = st.slice(START_new, END_new)
+            
+    #-------SINGLE TRIGGER-------------------
+    else: #there is only a single trigger
         trigger = trigger_filtered[0]
         peak = peaks_filtered[0]
         length = lengths_filtered[0]
         trigger_type = 'STA/LTA trigger'
-        #Trim stream to window of interest-------------
-        START_new = START + trigger + window_start- 0.001
-        END_new = START_new + WINDOW_LENGTH
-        st = st.slice(START_new, END_new)
+        if timing == 'trigger':
+            #Trim stream to window of interest-------------
+            START_new = START + trigger + window_start- 0.001
+            END_new = START_new + WINDOW_LENGTH
+            st = st.slice(START_new, END_new)
+        elif timing == 'power':
+            #Trim stream to window of interest-------------
+            START_new = START + trigger + window_start- 0.001 - ptolerance
+            END_new = START_new + 2*ptolerance
+            st = st.slice(START_new, END_new)
 
     print(trigger_type)
 
