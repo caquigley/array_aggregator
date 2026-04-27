@@ -1,8 +1,6 @@
 from obspy import UTCDateTime
 import pandas as pd
-from obspy.core import UTCDateTime
 from obspy.clients.fdsn import Client
-from obspy.core import UTCDateTime
 from obspy import read_inventory
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import yaml
@@ -281,10 +279,10 @@ def process_event(event, event_ids, mag, eq_time, client_str, stations_lists,
 
         #Calculate STA/LTA trigger times------------------------------
         #-----------------------------------------------
-        if timing == 'trigger':
-            (st, trigger, peak, length,
-             trigger_type, trigger_time,
-             START_new, END_new) = triggers(
+        
+        (st, trigger, peak, length,
+         trigger_type, trigger_time,
+         START_new, END_new) = triggers(
                 st, short_window, long_window,
                 on_threshold, off_theshold,
                 moveout, min_triggers,
@@ -294,7 +292,7 @@ def process_event(event, event_ids, mag, eq_time, client_str, stations_lists,
                 freq_max, trig_freq_min,
                 trig_freq_max,
                 multiple_triggers,
-                mseed_length, no_triggers)
+                mseed_length, timing, no_triggers)
 
         # Array processing------------------------------
         #-----------------------------------------------
